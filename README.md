@@ -2,5 +2,5 @@
 Notes and possibly code from CMSI 386 with Matt Brown
 
 ```
-⌘-F or ⌃-F is your friend
+⌘F or ⌃F is your friend
 ```
