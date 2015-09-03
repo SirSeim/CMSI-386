@@ -1,0 +1,85 @@
+09/01/15
+Functional Programming and Ocaml
+________________________________
+
+- no update
+- variable is misnomer. named values.
+- why is this a good thing?
+	- simplified reasoning
+	- mathematical functions
+		given equal inputs, get equal output
+		no I/O effects
+	- parallelism for free
+	- simplified language design
+		no statements, commands
+		
+	- first class functions
+		functions are just data
+		added: Java, C#
+	
+ocaml.org
+	exercise: tryocaml, lessons 1-4
+	will not use lesson 2
+	
+general form: if <exp> then <exp> else <exp>
+Equational Reasoning in Functional Programming:
+	factorial 5
+	= 5 * factorial (5-1)
+	= 5 * factorial 4
+	= 5 * (4 * factorial (4-1))
+	...
+	= 5 * (4 * (3 * (2 * (1 * 1))))
+	
+Pattern Matching:
+	let rec factorial n =
+	match n with
+	| 0 -> 1
+	| _ -> n * factorial (n-1)
+	
+	^checks matches in order
+	- good functional style
+	- prefer pattern matching when possible
+	
+09/03/15
+More Ocaml
+__________
+
+- Lists:
+	- [] (empty list aka "nil")
+	- :: is called "cons"
+		- adds a new element to the "head" of a list.
+		- cons is functional:
+			- let y = (1 + 2) :: x, x is unchanged
+	- the "head" of a non-empty list is the first element
+	- the "tail" of a non-empty list is the rest of the list
+	- A list is either:
+		- [] (empty list) (nil)
+		- (head :: tail)
+			- an element and a list
+			- Cons{1 -}--> Cons{2 -}--> Cons{3 -}--> []
+	- SumList uses a new pattern
+		- (hd :: tl)
+			- nested patterns:
+				- pattern for ::, patterns for the head and tail
+			- variable patterns:
+				- hd and tl are variable names
+				| hd::tl -> hd + sumList tl
+	- Ocaml is statically type-checked. So all of the branches of a match must 
+		have the same type. Also, the patterns must all match the same type.
+	- Expressions
+		E ::= C | X | if E then E else E
+			| let X = E
+			| match E with P1 -> E1
+				'|' P2 -> E2
+			| ...
+	- Constants
+		C ::= 1, []
+	- Variables
+		X ::= <variables>
+	- Patterns
+		P ::= C | _ | P::P | X
+- Recursive Functions:
+	1. Think about the base case(s), usually the easy part.
+	2. Think about the recursive case(s). Depends on the structure of the data being traversed.
+		- Assume hat the recursive call(s) do the right thing.
+		- Combine the results.
