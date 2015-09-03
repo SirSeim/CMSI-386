@@ -1,0 +1,37 @@
+Functional Programming and Ocaml
+========================================
+
+* no update
+* variable is misnomer. "named values" better.
+* why is this good thing?
+  * simplified reasoning
+  * mathematical functions
+    given equal inputs, get equal output
+    no I/O effects
+  * parallelism "for free": any two functions can be evaluated in parallel.
+  * simplified language design
+    no statements, commands
+  * first class functions
+    functions are just data
+    recognized as valuable and added to : Java C#
+
+ocaml.org
+  exercise: tryocaml, lessons 1 - 4
+  wont use lesson 2
+
+Equational reasoning in FP:
+    factorial 5
+  = 5 * factorial (5-1)
+  = 5 * factorial 4
+  = 5 * (4 * factorial (4-1))
+  ...
+  = 5 * (4 * (3 * (2 * (1 * 1))))
+
+Pattern matching
+  * good functional style
+  * prefer pattern matching when possible
+
+OCaml examples
+========================================
+
+0901_examples.ml
