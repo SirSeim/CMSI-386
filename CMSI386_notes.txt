@@ -83,3 +83,28 @@ __________
 	2. Think about the recursive case(s). Depends on the structure of the data being traversed.
 		- Assume hat the recursive call(s) do the right thing.
 		- Combine the results.
+- everyOther : 'a list -> 'a list
+	- "polymorphic"
+	- 'a is a type variable.
+	everyOther [1;2;3]
+	everyOther ["";"hi";"bye"]
+- Sometimes we want to give names to intermediate values.
+	let quadruple x = 
+		match double x with
+		| d -> d + d
+	OR
+	let quadruple x =
+		let d = double x
+		in d + d
+- new kind of expression: let X = E in E
+- note: let without "in" only allowed at the "top level"
+	- Top level expression: an expression that is not a subexpression of any other expression
+- Tuples:
+	- like lists, contain multiple elements
+		- two differences:
+			1. Allowed to mix types.
+			2. Fixed size.
+	- (1, "hi", 2.0)
+	- let (a,b) = (1, "hi)
+		- a = 1
+		- b = "hi"
