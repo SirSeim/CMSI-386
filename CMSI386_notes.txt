@@ -108,3 +108,10 @@ __________
 	- let (a,b) = (1, "hi)
 		- a = 1
 		- b = "hi"
+
+09/08/15
+
+____________
+
+- Tuples are good for functions with multiple arguments.
+	- Special case: is the 0-element tuple called a "unit"
