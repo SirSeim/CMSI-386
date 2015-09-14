@@ -115,3 +115,8 @@ ____________
 
 - Tuples are good for functions with multiple arguments.
 	- Special case: is the 0-element tuple called a "unit"
+
+09/10/15
+
+____________
+
