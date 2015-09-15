@@ -116,7 +116,28 @@ ____________
 - Tuples are good for functions with multiple arguments.
 	- Special case: is the 0-element tuple called a "unit"
 
-09/10/15
+09/15/15
 
 ____________
 
+type intList = Empty | Node of int * intList
+
+type 'a append_list =
+	  Empty
+	| Single of 'a
+	| Append of ('a append_list * 'a append_list)
+	
+let rec sumList l = 
+	match l with
+	| Empty -> 0
+	| Single x -> x
+	| Append (l1, l2) -> sumList l1 + sumList l2
+	
+let equal ((l1,l2) : 'a append_list * 'a append_list) : bool =
+	let rec to_list (l : 'a append_list) : 'a list =
+		match l with
+		| Empty -> []
+		| Single e -> [e]
+		| Append(l1,l2) -> to_list l1 @ to_list l2
+	in to_list l1 = to_list l2
+	

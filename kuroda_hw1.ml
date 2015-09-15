@@ -6,7 +6,7 @@
    Rodrigo Seim, Adrian Lu, Nick Soffa, Trixie Roque
 
    Other Resources I Consulted:
-   ocaml.org, ocaml documentation, ocamlpro.com
+   ocaml.org, ocaml documentation, ocamlpro.com, stackoverflow.com
    
 *)
 
@@ -71,18 +71,31 @@ let _ = assert (count("bread", ["slice"; "loaf"; "buns"]) = 0)
 Write a function that appends one list to the front of another.    
  *)
 
-(*
-let rec append ((l1,l2) : ('a list * 'a list)) : 'a list =
-  TODO
+let rec append ((liste1,liste2) : ('a list * 'a list)) : 'a list =
+  match liste1 with
+    | [] -> liste2
+    | [dernier] -> dernier::liste2
+    | hd::tl -> hd::(append(tl, liste2))
+
+let _ = assert (append([1;2;3], [4;5;6]) = [1;2;3;4;5;6])
+let _ = assert (append([], [4;5;6]) = [4;5;6])
+let _ = assert (append([1;2;3], []) = [1;2;3])
+let _ = assert (append([], []) = [])
 	
 (* Problem 5
 Use append to write a recursive function that reverses the elements in
 a list.
  *)
 
-let rec reverse (l : 'a list) : 'a list =
-  TODO
-*)
+let rec reverse (liste : 'a list) : 'a list =
+  match liste with
+    | [] -> []
+    | [dernier] -> [dernier]
+    | hd::tl -> append(reverse(tl), [hd])
+
+let _ = assert (reverse [1;2;3] = [3;2;1])
+let _ = assert (reverse [1] = [1])
+let _ = assert (reverse [] = [])
 	
 (* Problem 6
 Write a function "tails" of type 'a list -> 'a list list that takes a
@@ -107,15 +120,16 @@ is, the first, third, fifth, etc.) from those in even positions (that
 is, the second, fourth, etc.). 
  *)	       
 
-(*
 let rec split (liste : 'a list) : 'a list * 'a list =
   match liste with
-    | [] -> ([] [])
-    | [dernier] -> ([dernier] [])
-    | fst:snd:tl -> 
+    | [] -> ([], [])
+    | [dernier] -> ([dernier], [])
+    | fst::snd::tl -> let evens, odds = split(tl) in fst::evens, snd::odds
 
 let _ = assert (split [1;2;3;4] = ([1;3], [2;4]))
-*)
+let _ = assert (split [1] = ([1], []))
+let _ = assert (split [] = ([], []))
+let _ = assert (split [1;2;3] = ([1;3], [2]))
 
 (* Problem 8
 Flatten a list of lists.
@@ -200,11 +214,16 @@ noticeably faster than (fib 50).  Hint: Your function should make only
 one recursive call.
  *)
 
-(*
+
 let rec fibsFrom (n:int) : int list =
-  TODO
+  match n with
+    | 0 -> [0]
+    | 1 -> [1; 0]
+    | valeur -> let liste = fibsFrom(valeur - 1) in (List.hd(liste) + List.hd(List.tl(liste)))::liste
 
 let _ = assert (fibsFrom 1 = [1;0])
+let _ = assert (fibsFrom 4 = [3;2;1;1;0])
+
 		   
 (* Problem 13
 The naive algorithm for reversing a list takes time that is quadratic
@@ -228,11 +247,20 @@ you, so all you have to do is provide the implementation of revHelper
 as listed above.  The call (fastRev (clone(0, 10000))) should be
 noticeably faster than (reverse (clone(0, 10000))).
  *)
-					   
-let fastRev (l : 'a list) : 'a list =
-  let rec revHelper (remain, sofar) =
-	TODO
-in revHelper(l, [])
+
+ 
+let fastRev (liste : 'a list) : 'a list =
+  let rec revHelper ((remaining, reversed) : ('a list * 'a list)) : 'a list =
+    match remaining with
+      | [] -> reversed
+      | [dernier] -> dernier::reversed
+      | hd::tl -> (revHelper(tl, reversed))@[hd]
+in revHelper(liste, [])
+
+let _ = assert (fastRev [1;2;3;4] = [4;3;2;1])
+let _ = assert (fastRev [1] = [1])
+let _ = assert (fastRev [] = [])
+
 					   
 (* Problem 14
 Strings in OCaml do not support pattern matching very well, so it is
@@ -242,22 +270,37 @@ String.get and String.length, write a function chars that converts a
 string to a char list.
  *)
 
+
 let _ = assert (String.get "asdf" 0 = 'a')
 let _ = assert (String.length "asdf" = 4)	       
 
-let chars (s:string) : char list =
-  TODO
+let rec chars (contribution : string) : char list =
+  match contribution with
+    | "" -> []
+    | contribution -> (String.get contribution 0) :: (chars(String.sub contribution 1 ((String.length contribution)-1)))
 
 let _ = assert (chars "asdf" = ['a';'s';'d';'f'])
+let _ = assert (chars "" = [])
+let _ = assert (chars "123" = ['1';'2';'3'])
+
 	
 (* Problem 15
 Convert a list of digits (numbers between 0 and 9) into an integer.
  *)
 
-let int_of_digits (ds : int list) : int =
-  TODO
+let rec puissance ((contribution, pouvoir) : (int * int)) : int =
+  match pouvoir with
+    | 0 -> 1
+    | 1 -> contribution
+    | _ -> contribution * (puissance(contribution, pouvoir - 1))
+
+let rec int_of_digits (digits : int list) : int =
+  match digits with
+    | [] -> 0
+    | [dernier] -> dernier
+    | hd::tl -> hd * puissance(10, List.length(digits) - 1) + int_of_digits(tl)
 
 let _ = assert (int_of_digits [1;2;3] = 123)
 let _ = assert (int_of_digits [0;1;0] = 10)
-
-*)
+let _ = assert (int_of_digits [] = 0)
+let _ = assert (int_of_digits [24] = 24)
