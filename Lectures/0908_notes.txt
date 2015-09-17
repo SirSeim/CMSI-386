@@ -1,0 +1,93 @@
+Review from last time:
+
+  let x = 1 + 2 in x * x
+
+  let x = 1 + 2 in
+  let y = 3 + 4 in
+  x * y
+   <==>
+  let x = 1 + 2 in
+  (let y = 3 + 4 in
+  x * y)
+        
+Pattern matching with let:
+
+  let [x;y;z] = [1;2;3] in x + y + z
+
+Tuples:
+  (1, "hi", 2.0)
+
+Grammar of ocaml so far:
+  (Variables) X ::= <variables>
+  (Constants) C ::= 1,[],::,...
+  (Expressions)
+  E ::= C | X | if E then E else E
+      | let X = E in E
+      | match E with P1 -> E1 '|' ... '|' Pn -> En
+      | (E1, ..., En)
+  (Patterns)
+  P ::= C | _ | X | (P1, ..., Pn)
+
+
+Remember: a name pattern defines a name (possibly shadowing previous
+definition). It does not test for equality with a previously defined
+name.  For that, use match/when:
+
+let _ =
+  let x = 5 in
+  match 6 with
+  | y when x=y -> y + 1
+  | y          -> y + 2
+
+Tuples:
+(1, "hi", 2.0) has type (int * string * float)
+
+Pattern matching tuples:
+let (x,y,z) = (1, "hi", 2.0) in
+    x + 5
+
+(* We'll need Equality. *)
+let _ =
+  [1;2;3] == (1::2::3::[])
+
+let _ =
+  (1,2,3) == [1;2;3]
+
+let _ =
+  [1;2;3] = (1::2::3::[])
+           
+(* WATCH OUT FOR pointer equality.
+   == is checking pointer values (two values occupy the same region in memory).
+   = is checking "value equality"
+ *)
+
+(* How do you check two values are not equal? *)
+let _ = not (1=2)
+
+(* How do we get the first element of a list (the head)?
+   What if the list is empty? *)
+let head l =
+  match l with
+  | x::_ -> x
+
+let _ = head []       (* Throws an exception (run-time error) *)
+
+End of review.
+
+Tuples are good for functions with multiple arguments.
+
+let add(x,y) = (x+y)      
+let _ = add(3,4)
+
+Special case: the 0-element tuple.
+type is "unit", value is (). 
+
+let randDigit = Random.int 10     
+
+randDigit is a fixed int value.
+
+let randDigit() = Random.int 10   
+
+randDigit is now a function from unit to int.
+Every call produces a different random integer.
+    
