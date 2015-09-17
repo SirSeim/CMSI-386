@@ -1,0 +1,26 @@
+(*
+Homework 1: I'm still accepting late submissions until Wednesday at
+midnight, so we'll discuss homework 1 Thursday. Solutions Thursday
+too.
+
+Remember:
+ - start homeworks early.
+ - email me if you are confused or stuck.
+ - if you can't come to my scheduled office hours, you can make an
+   appointment for another time.
+ - would it be better if I held office hours in Keck lab? 
+
+This class is challenging. Learning a new programming paradigm is like
+learning to program for the first time again. Have to get used to
+thinking about computation in new ways.
+
+This class should also be fun. Come to me if you're frustrated.
+
+Stop me during class if I'm not making sense. If you're confused,
+you're probably not the only one. Either way, the entire class will
+benefit from your question.
+
+ocaml foo.ml  (* runs foo.ml, and exits. should have used this for hw1. *)
+ocaml (* opens repl *)
+
+ *)
