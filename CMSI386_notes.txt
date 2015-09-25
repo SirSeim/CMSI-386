@@ -141,3 +141,39 @@ let equal ((l1,l2) : 'a append_list * 'a append_list) : bool =
 		| Append(l1,l2) -> to_list l1 @ to_list l2
 	in to_list l1 = to_list l2
 	
+09/17/15
+
+____________
+
+Binary search tree:
+	- for every Node (l, x, r):
+		- x is greater than or equal to every element in l
+		- x is less than every element in r
+Equivalently:
+	- Leaf is a binary search tree
+	- Node(l, x, r) is a binary search tree if:
+		- x is greater than or equal to every element in l, and
+			x is less than every element in r
+
+First-class functions:
+	Functions are data; you can assign them to variables, take them as input to functions, and
+		return them from functions.
+
+09/22/15
+
+____________
+
+map: applies a function to each element of list (returns a new list)
+
+filter: takes a "predicate" and a list, returns a new list containing the elements that satisfy the predicate
+
+let contains e l =
+	match (filter (fun x -> x = e) l) with
+		| _::_ -> true
+		| [] -> false
+
+let rec filter p l = 
+	match l with
+		| [] -> []
+		| hd :: tl when p hd -> hd :: filter p tl
+		| _ :: tl -> filter p tl
