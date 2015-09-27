@@ -5,6 +5,7 @@
    Others With Whom I Discussed Things: Josh Kuroda
 
    Other Resources I Consulted: http://caml.inria.fr/
+   https://ocaml.org/
    
 *)
 
@@ -63,7 +64,7 @@ let _ = assert (unzip [(1,'a');(2,'b')] = ([1;2], ['a';'b']));;
    N is the number of duplicates of the element E.
  *)
 
-(* let encode : 'a list -> (int * 'a) list = 
+(* let encode (l : 'a list) : (int * 'a) list = 
 
 
 let _ = assert (encode ['a';'a';'a';'b';'c';'c'] = [(3,'a');(1,'b');(2,'c')]);; *)
@@ -96,9 +97,17 @@ let _ = assert (intOfDigits [3;4;5] = 345)
    Do not use any functions from the List module or other modules.
  *)
 
-(* let rec map2 : ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list = TODO
+let rec map2 (f : ('a -> 'b -> 'c)) (l1 : 'a list) (l2 : 'b list) : 'c list = 
+   match l1, l2 with
+   | [], [] -> []
+   | [], _ -> []
+   | _, [] -> []
+   | hd1::tl1, hd2::tl2 -> (f hd1 hd2)::(map2 f tl1 tl2)
 
-let _ = assert (map2 (fun x y -> x*y) [1;2;3] [4;5;6] = [1*4; 2*5; 3*6]);; *)
+let _ = assert (map2 (fun x y -> x*y) [] [] = [])
+let _ = assert (map2 (fun x y -> x*y) [] [1] = [])
+let _ = assert (map2 (fun x y -> x*y) [1] [] = [])
+let _ = assert (map2 (fun x y -> x*y) [1;2;3] [4;5;6] = [1*4; 2*5; 3*6]);;
 
 (* Problem 2b.
 
@@ -111,9 +120,12 @@ let _ = assert (map2 (fun x y -> x*y) [1;2;3] [4;5;6] = [1*4; 2*5; 3*6]);; *)
    map2.
  *)
 
-(* let zip : 'a list -> 'b list -> ('a * 'b) list = map2 TODO
+let zip (l1 : 'a list) (l2 : 'b list) : ('a * 'b) list = 
+   map2 (fun x y -> (x, y)) l1 l2
 
-let _ = assert (zip [1;2] ['a';'b']  = [(1,'a');(2,'b')]);; *)
+let _ = assert (zip [] [] = [])
+let _ = assert (zip [1] ['a'] = [(1, 'a')])
+let _ = assert (zip [1;2] ['a';'b']  = [(1,'a');(2,'b')]);;
 
 (* Problem 2c.
 
@@ -130,8 +142,13 @@ let _ = assert (zip [1;2] ['a';'b']  = [(1,'a');(2,'b')]);; *)
    Implement foldn using explicit recursion.
  *)
 
-(* let rec foldn : (int -> 'a -> 'a) -> int -> 'a -> 'a = TODO
+(* let rec foldn (f : (int -> 'a -> 'a)) (n : int) (b : 'a) : 'a =
+   match n with
+   | 0 -> b
+   | _ -> (f n (foldn f (n-1) b))
 
+
+let _ = assert (foldn (fun x y -> x*y) 5 2 = 5 * 4 * 3 * 2);;
 let _ = assert (foldn (fun x y -> x*y) 5 1 = 5 * 4 * 3 * 2 * 1);;
 let _ = assert (foldn (fun x y -> x-y) 5 1 = 5 - (4 - (3 - (2 - 1))));; *)
 
@@ -182,7 +199,23 @@ let _ = assert (foldn (fun x y -> x-y) 5 1 = 5 - (4 - (3 - (2 - 1))));; *)
    empty1: unit -> ('a * 'b) list
    put1: 'a -> 'b -> ('a * 'b) list -> ('a * 'b) list
    get1: 'a -> ('a * 'b) list -> 'b option
- *)  
+ *)
+
+let empty1 (a : unit) : ('a * 'b) list = []
+let put1 (key : 'a) (value : 'b) (dic : ('a * 'b) list) : ('a * 'b) list =
+   (key, value)::dic
+let rec get1 (key : 'a) (dic : ('a * 'b) list) : 'b option = 
+   match dic with
+   | [] -> None
+   | (k, v)::tl -> if (k = key) then Some v else get1 key tl
+
+let _ = assert (empty1 () = [])
+let dica = put1 'a' 1 (empty1 ())
+let _ = assert (get1 'a' dica = Some 1)
+let dica = put1 'b' 2 dica
+let _ = assert (get1 'a' dica = Some 1)
+let _ = assert (get1 'b' dica = Some 2)
+let _ = assert (get1 'c' dica = None)
 
 (* Problem 3b.
 
@@ -204,7 +237,23 @@ let _ = assert (foldn (fun x y -> x-y) 5 1 = 5 - (4 - (3 - (2 - 1))));; *)
    get2: 'a -> ('a,'b) dict2 -> 'b option
  *)  
     
-(* type ('a,'b) dict2 = Empty | Entry of 'a * 'b * ('a,'b) dict2 *)
+type ('a,'b) dict2 = Empty | Entry of 'a * 'b * ('a,'b) dict2
+
+let empty2 (a : unit) : ('a,'b) dict2 = Empty
+let put2 (key : 'a) (value : 'b) (dic : ('a,'b) dict2) : ('a,'b) dict2 = 
+   Entry (key, value, dic)
+let rec get2 (key : 'a) (dic : ('a,'b) dict2) : 'b option = 
+   match dic with
+   | Empty -> None
+   | Entry (k, v, dictl) -> if (k = key) then Some v else (get2 key dictl)
+
+let _ = assert (empty2 () = Empty)
+let dicb = put2 'a' 1 (empty2 ())
+let _ = assert (get2 'a' dicb = Some 1)
+let dicb = put2 'b' 2 dicb
+let _ = assert (get2 'a' dicb = Some 1)
+let _ = assert (get2 'b' dicb = Some 2)
+let _ = assert (get2 'c' dicb = None)
     
 (* Problem 3c
 
