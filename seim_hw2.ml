@@ -63,7 +63,8 @@ let _ = assert (unzip [(1,'a');(2,'b')] = ([1;2], ['a';'b']));;
    N is the number of duplicates of the element E.
  *)
 
-(* let encode : 'a list -> (int * 'a) list = TODO
+(* let encode : 'a list -> (int * 'a) list = 
+
 
 let _ = assert (encode ['a';'a';'a';'b';'c';'c'] = [(3,'a');(1,'b');(2,'c')]);; *)
 
@@ -71,7 +72,14 @@ let _ = assert (encode ['a';'a';'a';'b';'c';'c'] = [(3,'a');(1,'b');(2,'c')]);; 
    The function intOfDigits from Homework 1.
  *)
 
-(* let intOfDigits : int list -> int = TODO *)
+let intOfDigits (l : int list) : int = 
+   fold_left (fun n x -> (n*10)+x) 0 l
+
+let _ = assert (intOfDigits [] = 0)
+let _ = assert (intOfDigits [0] = 0)
+let _ = assert (intOfDigits [5] = 5)
+let _ = assert (intOfDigits [5;4] = 54)
+let _ = assert (intOfDigits [3;4;5] = 345)
 
 (***********************************************************************
  * Problem 2: Defining higher-order functions.
