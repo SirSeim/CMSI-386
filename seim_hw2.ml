@@ -1,10 +1,10 @@
-(* Name:
+(* Name: Edward Seim
 
-   UID:
+   UID: 930713935
 
-   Others With Whom I Discussed Things:
+   Others With Whom I Discussed Things: Josh Kuroda
 
-   Other Resources I Consulted:
+   Other Resources I Consulted: http://caml.inria.fr/
    
 *)
 
@@ -36,9 +36,13 @@ let fold_right = List.fold_right
    kept but are unchanged.
  *)
 
-let doubleAllPos : int list -> int list = TODO
+let doubleAllPos (l : int list) : int list = 
+   map (fun x -> if x > 0 then x*2 else x) l
 
 let _ = assert (doubleAllPos [1;2;-1;4;-3;0] = [2;4;-1;8;-3;0]);;
+let _ = assert (doubleAllPos [] = [])
+let _ = assert (doubleAllPos [-1] = [-1])
+let _ = assert (doubleAllPos [-1;2] = [-1;4])
 
 (* Problem 1b.
    A function that takes a list of pairs and returns a pair of lists.
@@ -46,8 +50,11 @@ let _ = assert (doubleAllPos [1;2;-1;4;-3;0] = [2;4;-1;8;-3;0]);;
    the second list contains the second components.
  *)
    
-let unzip : ('a * 'b) list -> 'a list * 'b list = TODO
+let unzip (l : ('a * 'b) list) : 'a list * 'b list = 
+   fold_left (fun l x -> let rl1, rl2 = l in let t1, t2 = x in (rl1@[t1], rl2@[t2])) ([], []) l
 
+let _ = assert (unzip [] = ([], []))
+let _ = assert (unzip [(0,0)] = ([0], [0]))
 let _ = assert (unzip [(1,'a');(2,'b')] = ([1;2], ['a';'b']));;
 
 (* Problem 1c.
@@ -56,15 +63,15 @@ let _ = assert (unzip [(1,'a');(2,'b')] = ([1;2], ['a';'b']));;
    N is the number of duplicates of the element E.
  *)
 
-let encode : 'a list -> (int * 'a) list = TODO
+(* let encode : 'a list -> (int * 'a) list = TODO
 
-let _ = assert (encode ['a';'a';'a';'b';'c';'c'] = [(3,'a');(1,'b');(2,'c')]);;
+let _ = assert (encode ['a';'a';'a';'b';'c';'c'] = [(3,'a');(1,'b');(2,'c')]);; *)
 
 (* Problem 1d
    The function intOfDigits from Homework 1.
  *)
 
-let intOfDigits : int list -> int = TODO
+(* let intOfDigits : int list -> int = TODO *)
 
 (***********************************************************************
  * Problem 2: Defining higher-order functions.
@@ -81,9 +88,9 @@ let intOfDigits : int list -> int = TODO
    Do not use any functions from the List module or other modules.
  *)
 
-let rec map2 : ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list = TODO
+(* let rec map2 : ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list = TODO
 
-let _ = assert (map2 (fun x y -> x*y) [1;2;3] [4;5;6] = [1*4; 2*5; 3*6]);;
+let _ = assert (map2 (fun x y -> x*y) [1;2;3] [4;5;6] = [1*4; 2*5; 3*6]);; *)
 
 (* Problem 2b.
 
@@ -96,9 +103,9 @@ let _ = assert (map2 (fun x y -> x*y) [1;2;3] [4;5;6] = [1*4; 2*5; 3*6]);;
    map2.
  *)
 
-let zip : 'a list -> 'b list -> ('a * 'b) list = map2 TODO
+(* let zip : 'a list -> 'b list -> ('a * 'b) list = map2 TODO
 
-let _ = assert (zip [1;2] ['a';'b']  = [(1,'a');(2,'b')]);;
+let _ = assert (zip [1;2] ['a';'b']  = [(1,'a');(2,'b')]);; *)
 
 (* Problem 2c.
 
@@ -115,10 +122,10 @@ let _ = assert (zip [1;2] ['a';'b']  = [(1,'a');(2,'b')]);;
    Implement foldn using explicit recursion.
  *)
 
-let rec foldn : (int -> 'a -> 'a) -> int -> 'a -> 'a = TODO
+(* let rec foldn : (int -> 'a -> 'a) -> int -> 'a -> 'a = TODO
 
 let _ = assert (foldn (fun x y -> x*y) 5 1 = 5 * 4 * 3 * 2 * 1);;
-let _ = assert (foldn (fun x y -> x-y) 5 1 = 5 - (4 - (3 - (2 - 1))));;
+let _ = assert (foldn (fun x y -> x-y) 5 1 = 5 - (4 - (3 - (2 - 1))));; *)
 
 (* Problem 2d.
    Implement the clone function from Homework 1 as a single call to
@@ -189,7 +196,7 @@ let _ = assert (foldn (fun x y -> x-y) 5 1 = 5 - (4 - (3 - (2 - 1))));;
    get2: 'a -> ('a,'b) dict2 -> 'b option
  *)  
     
-type ('a,'b) dict2 = Empty | Entry of 'a * 'b * ('a,'b) dict2
+(* type ('a,'b) dict2 = Empty | Entry of 'a * 'b * ('a,'b) dict2 *)
     
 (* Problem 3c
 
@@ -227,5 +234,5 @@ type ('a,'b) dict2 = Empty | Entry of 'a * 'b * ('a,'b) dict2
    get3: 'a -> ('a,'b) dict3 -> 'b option
  *)  
 
-type ('a,'b) dict3 = ('a -> 'b option)
+(* type ('a,'b) dict3 = ('a -> 'b option) *)
 
