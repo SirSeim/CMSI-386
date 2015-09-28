@@ -302,14 +302,11 @@ let _ = assert (get2 'c' dicb = None)
    get3: 'a -> ('a,'b) dict3 -> 'b option
  *)  
 
-(* type ('a,'b) dict3 = ('a -> 'b option)
+type ('a,'b) dict3 = ('a -> 'b option)
 
 let empty3 (a : unit) : ('a,'b) dict3 = (fun s -> None)
 let put3 (key : 'a) (value : 'b) (dic : ('a,'b) dict3) : ('a,'b) dict3 = 
-   (fun k -> 
-      match k with
-      | key -> Some value
-      | _ -> dic k)
+   (fun k -> if (k = key) then Some value else dic k)
 let get3 (key : 'a) (dic : ('a,'b) dict3) : 'b option = 
    dic key
 
@@ -319,5 +316,5 @@ let _ = assert (get3 'a' dicc = Some 1)
 let dicc = put3 'b' 2 dicc
 let _ = assert (get3 'a' dicc = Some 1)
 let _ = assert (get3 'b' dicc = Some 2)
-let _ = assert (get3 'c' dicc = None) *)
+let _ = assert (get3 'c' dicc = None)
 
