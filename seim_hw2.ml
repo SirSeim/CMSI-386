@@ -68,24 +68,17 @@ let _ = assert (unzip [(1,'a');(2,'b')] = ([1;2], ['a';'b']));;
    N is the number of duplicates of the element E.
  *)
 
- 
-let pack list =
-   let rec aux current acc = function
-      | [] -> []    (* Can only be reached if original list is empty *)
-      | [x] -> (x :: current) :: acc
-      | a :: (b :: _ as t) ->
-         if a = b then aux (a :: current) acc t
-         else aux [] ((a :: current) :: acc) t  in
-   List.rev ((aux [] []) list);;
-
-(* let process l x = 
-   match l with
-   | [] -> [(1, x)]
-   | _::(b)
 let encode (l : 'a list) : (int * 'a) list = 
-   fold_left (fun l x -> )
+   fold_right (fun x li -> 
+               match li with
+               | [] -> [(1, x)]
+               | (n, c)::tl -> if c = x then (n+1, x)::tl else ((1,x)::((n,c)::tl))) l []
 
-let _ = assert (encode ['a';'a';'a';'b';'c';'c'] = [(3,'a');(1,'b');(2,'c')]);; *)
+let _ = assert (encode [] = [])
+let _ = assert (encode ['a'] = [(1,'a')])
+let _ = assert (encode ['a';'a'] = [(2,'a')])
+let _ = assert (encode ['a';'b'] = [(1,'a');(1,'b')])
+let _ = assert (encode ['a';'a';'a';'b';'c';'c'] = [(3,'a');(1,'b');(2,'c')]);;
 
 (* Problem 1d
    The function intOfDigits from Homework 1.
@@ -162,6 +155,7 @@ let _ = assert (zip [1;2] ['a';'b']  = [(1,'a');(2,'b')]);;
 
 let rec foldn (f : (int -> 'a -> 'a)) (n : int) (b : 'a) : 'a =
    match n with
+   | 0 -> b
    | 1 -> f n b
    | _ -> f n (foldn (f) (n-1) (b))
 
@@ -175,9 +169,32 @@ let _ = assert (foldn (fun x y -> x-y) 5 0 = 5 - (4 - (3 - (2 - (1 - 0)))))
    foldn.
  *)
 
+let clone ((e,n) : 'a * int) : 'a list = 
+   foldn (fun x y -> 
+            match y with
+            | [] -> []
+            | hd::tl -> [hd;hd]@tl) n [e]
+
+let _ = assert (['s'] = clone('s', 0))
+let _ = assert (['s'; 's'] = clone('s', 1))
+let _ = assert (['s'; 's'; 's'] = clone('s', 2))
+
 (* Problem 2e.
    Implement fibsFrom from Homework1 as a single call to foldn.
  *)
+
+let fibsFrom (n:int) : int list = 
+   foldn (fun x y ->
+            match y with
+            | [] -> [1;0]
+            | [_] -> [1;0]
+            | hd::md::tl -> (hd+md)::(hd::(md::tl))) n []
+
+let _ = assert(fibsFrom 0 = [])
+let _ = assert(fibsFrom 1 = [1;0])
+let _ = assert(fibsFrom 2 = [1;1;0])
+let _ = assert(fibsFrom 3 = [2;1;1;0])
+let _ = assert(fibsFrom 4 = [3;2;1;1;0])
 
 (************************************************************************
  * Problem 3: Dictionaries.
