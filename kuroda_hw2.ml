@@ -3,9 +3,11 @@
    UID: 965155965
 
    Others With Whom I Discussed Things:
+   Rodrigo Seim, Lauren Konchan, Adrian Lu
 
    Other Resources I Consulted:
-   
+   ocaml.org
+
 *)
 
 (* For this assignment, you will get practice with higher-order functions
@@ -77,7 +79,13 @@ let _ = assert (encode ['a';'a';'a';'b';'c';'c'] = [(3,'a');(1,'b');(2,'c')]);;
    The function intOfDigits from Homework 1.
  *)
 
-let intOfDigits (l : int list) : int = TODO
+let intOfDigits (l : int list) : int =
+   fold_left (fun a b -> (10 * a) + b) 0 l
+
+let _ = assert (intOfDigits [1;2;3] = 123)
+let _ = assert (intOfDigits [1] = 1)
+let _ = assert (intOfDigits [] = 0)
+let _ = assert (intOfDigits [-1] = -1)
 
 (***********************************************************************
  * Problem 2: Defining higher-order functions.
@@ -94,10 +102,17 @@ let intOfDigits (l : int list) : int = TODO
    Do not use any functions from the List module or other modules.
  *)
 
-let rec map2 f : ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list = 
-   match 
+let rec map2 (fonction : ('a -> 'b -> 'c)) (liste1 :'a list) (liste2 :'b list) : 'c list = 
+   match liste1, liste2 with
+   | [], [] -> []
+   | _, [] -> []
+   | [], _ -> []
+   | tete::queue, tete1::queue1 -> (fonction tete tete1)::(map2 fonction queue queue1)
 
 let _ = assert (map2 (fun x y -> x*y) [1;2;3] [4;5;6] = [1*4; 2*5; 3*6]);;
+let _ = assert (map2 (fun x y -> x*y) [] [4;5;6] = []);;
+let _ = assert (map2 (fun x y -> x*y) [1;2;3] [] = []);;
+let _ = assert (map2 (fun x y -> x*y) [] [] = []);;
 
 (* Problem 2b.
 
@@ -110,9 +125,12 @@ let _ = assert (map2 (fun x y -> x*y) [1;2;3] [4;5;6] = [1*4; 2*5; 3*6]);;
    map2.
  *)
 
-let zip : 'a list -> 'b list -> ('a * 'b) list = map2 TODO
+let zip (liste1 : 'a list) (liste2 : 'b list) : ('a * 'b) list = 
+   map2 (fun a b -> (a, b)) liste1 liste2
 
 let _ = assert (zip [1;2] ['a';'b']  = [(1,'a');(2,'b')]);;
+let _ = assert (zip [] []  = []);;
+let _ = assert (zip [1] ['a']  = [(1,'a')]);;
 
 (* Problem 2c.
 
@@ -129,10 +147,14 @@ let _ = assert (zip [1;2] ['a';'b']  = [(1,'a');(2,'b')]);;
    Implement foldn using explicit recursion.
  *)
 
-let rec foldn : (int -> 'a -> 'a) -> int -> 'a -> 'a = TODO
+(* let rec foldn (fonction : (int -> 'a -> 'a)) (count : int) (base : 'a) : 'a =
+   match count with
+   |
 
-let _ = assert (foldn (fun x y -> x*y) 5 1 = 5 * 4 * 3 * 2 * 1);;
-let _ = assert (foldn (fun x y -> x-y) 5 1 = 5 - (4 - (3 - (2 - 1))));;
+
+let _ = assert (foldn (fun x y -> x*y) 5 1 = 5 * 4 * 3 * 2 * 1 * 1);;
+let _ = assert (foldn (fun x y -> x-y) 5 0 = 5 - (4 - (3 - (2 - (1 - 0)))));;
+ *)
 
 (* Problem 2d.
    Implement the clone function from Homework 1 as a single call to
@@ -183,6 +205,22 @@ let _ = assert (foldn (fun x y -> x-y) 5 1 = 5 - (4 - (3 - (2 - 1))));;
    get1: 'a -> ('a * 'b) list -> 'b option
  *)  
 
+   let empty1 (x : unit) : ('a * 'b) list = []
+
+   let put1 (cle : 'a) (valeur : 'b) (dict1 : ('a * 'b) list) : ('a * 'b) list =
+      (cle, valeur)::dict1
+
+   let rec get1 (cle : 'a) (dict1 : ('a * 'b) list) : 'b option =
+      match dict1 with
+      | [] -> None
+      | (key, value)::queue when key = cle -> Some value
+      | (key, value)::queue -> get1 cle queue
+
+   let _ = assert (empty1 () = [])
+   let test = put1 "hello" 5 (empty1 ())
+   let _ = assert (get1 "hello" test = Some 5)
+   let _ = assert (get1 "hi" test = None)
+
 (* Problem 3b.
 
    Our second implementation of a dictionary uses a new datatype 
@@ -201,9 +239,25 @@ let _ = assert (foldn (fun x y -> x-y) 5 1 = 5 - (4 - (3 - (2 - 1))));;
    empty2: unit -> ('a,'b) dict2
    put2: 'a -> 'b -> ('a,'b) dict2 -> ('a,'b) dict2
    get2: 'a -> ('a,'b) dict2 -> 'b option
- *)  
+  *)
     
-type ('a,'b) dict2 = Empty | Entry of 'a * 'b * ('a,'b) dict2
+type ('a,'b) dict2 = Empty | Entry of 'a * 'b * ('a, 'b) dict2
+
+let empty2 (x : unit) : ('a, 'b) dict2 = Empty
+
+let put2 (cle : 'a) (valeur : 'b) (dict : ('a, 'b) dict2) : ('a, 'b) dict2 =
+   Entry (cle, valeur, dict)
+
+let rec get2 (cle : 'a) (dict : ('a, 'b) dict2) : 'b option =
+   match dict with
+   | Empty -> None
+   | Entry (key, value, queue) when key = cle -> Some value
+   | Entry (key, value, queue) -> get2 cle queue
+
+let _ = assert (empty2 () = Empty)
+let test = put2 "hello" 5 (empty2 ())
+let _ = assert (get2 "hello" test = Some 5)
+let _ = assert (get2 "hi" test = None)
     
 (* Problem 3c
 
@@ -239,8 +293,13 @@ type ('a,'b) dict2 = Empty | Entry of 'a * 'b * ('a,'b) dict2
    empty3: unit -> ('a,'b) dict3
    put3: 'a -> 'b -> ('a,'b) dict3 -> ('a,'b) dict3
    get3: 'a -> ('a,'b) dict3 -> 'b option
- *)  
+  *) 
 
 type ('a,'b) dict3 = ('a -> 'b option)
+let empty3 (x : unit) : ('a, 'b) dict3 = None
+let put3 (cle : 'a) (valeur : 'b) (dict : ('a, 'b) dict3) = 
+   fun key -> if cle = key then valeur else dict key
+let get3 (cle : 'a) (dict : ('a, 'b) dict3) =
+   
 
 *)
