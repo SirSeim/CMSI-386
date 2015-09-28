@@ -64,8 +64,19 @@ let _ = assert (unzip [(1,'a');(2,'b')] = ([1;2], ['a';'b']));;
    N is the number of duplicates of the element E.
  *)
 
-(* let encode (l : 'a list) : (int * 'a) list = 
+ 
+let pack list =
+   let rec aux current acc = function
+      | [] -> []    (* Can only be reached if original list is empty *)
+      | [x] -> (x :: current) :: acc
+      | a :: (b :: _ as t) ->
+         if a = b then aux (a :: current) acc t
+         else aux [] ((a :: current) :: acc) t  in
+   List.rev ((aux [] []) list);;
 
+
+(* let encode (l : 'a list) : (int * 'a) list = 
+   fold_left (fun l x -> )
 
 let _ = assert (encode ['a';'a';'a';'b';'c';'c'] = [(3,'a');(1,'b');(2,'c')]);; *)
 
@@ -142,15 +153,15 @@ let _ = assert (zip [1;2] ['a';'b']  = [(1,'a');(2,'b')]);;
    Implement foldn using explicit recursion.
  *)
 
-(* let rec foldn (f : (int -> 'a -> 'a)) (n : int) (b : 'a) : 'a =
+(* let rec foldn (f : (int -> int -> 'a)) (n : int) (b : int) : 'a =
    match n with
-   | 0 -> b
-   | _ -> (f n (foldn f (n-1) b))
+   | b -> f n b
+   | _ -> f n (foldn (f) (n-1) (b))
 
 
 let _ = assert (foldn (fun x y -> x*y) 5 2 = 5 * 4 * 3 * 2);;
-let _ = assert (foldn (fun x y -> x*y) 5 1 = 5 * 4 * 3 * 2 * 1);;
-let _ = assert (foldn (fun x y -> x-y) 5 1 = 5 - (4 - (3 - (2 - 1))));; *)
+let _ = assert (foldn (fun x y -> x*y) 5 1 = 5 * 4 * 3 * 2 * 1 * 1)
+let _ = assert (foldn (fun x y -> x-y) 5 0 = 5 - (4 - (3 - (2 - (1 - 0))))) *)
 
 (* Problem 2d.
    Implement the clone function from Homework 1 as a single call to
@@ -291,5 +302,22 @@ let _ = assert (get2 'c' dicb = None)
    get3: 'a -> ('a,'b) dict3 -> 'b option
  *)  
 
-(* type ('a,'b) dict3 = ('a -> 'b option) *)
+(* type ('a,'b) dict3 = ('a -> 'b option)
+
+let empty3 (a : unit) : ('a,'b) dict3 = (fun s -> None)
+let put3 (key : 'a) (value : 'b) (dic : ('a,'b) dict3) : ('a,'b) dict3 = 
+   (fun k -> 
+      match k with
+      | key -> Some value
+      | _ -> dic k)
+let get3 (key : 'a) (dic : ('a,'b) dict3) : 'b option = 
+   dic key
+
+let _ = assert (empty3 () 0 = None)
+let dicc = put3 'a' 1 (empty3 ())
+let _ = assert (get3 'a' dicc = Some 1)
+let dicc = put3 'b' 2 dicc
+let _ = assert (get3 'a' dicc = Some 1)
+let _ = assert (get3 'b' dicc = Some 2)
+let _ = assert (get3 'c' dicc = None) *)
 
