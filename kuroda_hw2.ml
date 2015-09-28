@@ -300,4 +300,7 @@ let empty3 (x : unit) : ('a, 'b) dict3 = None
 let put3 (cle : 'a) (valeur : 'b) (dict : ('a, 'b) dict3) = 
    fun key -> if cle = key then valeur else dict key
 let get3 (cle : 'a) (dict : ('a, 'b) dict3) = 
+   dict cle
 
+let _ = assert (empty3 () = None)
+let test = 
