@@ -147,14 +147,15 @@ let _ = assert (zip [1] ['a']  = [(1,'a')]);;
    Implement foldn using explicit recursion.
  *)
 
-(* let rec foldn (fonction : (int -> 'a -> 'a)) (count : int) (base : 'a) : 'a =
+let rec foldn (fonction : (int -> 'a -> 'a)) (count : int) (base : 'a) : 'a =
    match count with
-   |
+   | 0 -> 
+   | 
 
 
-let _ = assert (foldn (fun x y -> x*y) 5 1 = 5 * 4 * 3 * 2 * 1 * 1);;
+let _ = assert (foldn (fun x y -> x*y) 5 1 = 5 * 4 * 3 * 2 * (1 * 1));;
 let _ = assert (foldn (fun x y -> x-y) 5 0 = 5 - (4 - (3 - (2 - (1 - 0)))));;
- *)
+
 
 (* Problem 2d.
    Implement the clone function from Homework 1 as a single call to
@@ -296,11 +297,13 @@ let _ = assert (get2 "hi" test = None)
   *) 
 
 type ('a,'b) dict3 = ('a -> 'b option)
-let empty3 (x : unit) : ('a, 'b) dict3 = None
+let empty3 (x : unit) : ('a, 'b) dict3 = fun y -> None
 let put3 (cle : 'a) (valeur : 'b) (dict : ('a, 'b) dict3) = 
-   fun key -> if cle = key then valeur else dict key
+   fun key -> if cle = key then Some valeur else dict key
 let get3 (cle : 'a) (dict : ('a, 'b) dict3) = 
    dict cle
 
-let _ = assert (empty3 () = None)
-let test = 
+let _ = assert (empty3 () 0 = None)
+let test = put3 "hello" 5 (empty3 ())
+let _ = assert (get3 "hello" test = Some 5)
+let _ = assert (get3 "hi" test = None)
