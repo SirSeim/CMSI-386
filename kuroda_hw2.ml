@@ -3,7 +3,7 @@
    UID: 965155965
 
    Others With Whom I Discussed Things:
-   Rodrigo Seim, Lauren Konchan, Adrian Lu
+   Rodrigo Seim, Lauren Konchan, Adrian Lu, Trixie Roque
 
    Other Resources I Consulted:
    ocaml.org
@@ -71,7 +71,7 @@ let _ = assert (unzip [(1,'a')] = ([1], ['a']));;
  *)
 
 (* let encode (l : 'a list) : (int * 'a) list = 
-
+   
 
 let _ = assert (encode ['a';'a';'a';'b';'c';'c'] = [(3,'a');(1,'b');(2,'c')]);;
  *)
@@ -148,19 +148,20 @@ let _ = assert (zip [1] ['a']  = [(1,'a')]);;
  *)
 
 let rec foldn (fonction : (int -> 'a -> 'a)) (count : int) (base : 'a) : 'a =
-   match count with
-   | 0 -> 
-   | 
+   if count = 1 then fonction count base else fonction count (foldn (fonction) (count-1) base)
 
 
 let _ = assert (foldn (fun x y -> x*y) 5 1 = 5 * 4 * 3 * 2 * (1 * 1));;
 let _ = assert (foldn (fun x y -> x-y) 5 0 = 5 - (4 - (3 - (2 - (1 - 0)))));;
+let _ = assert (foldn (fun x y -> x+y) 5 3 = 5 + (4 + (3 + (2 + (1 + 3)))));;
 
 
 (* Problem 2d.
    Implement the clone function from Homework 1 as a single call to
    foldn.
  *)
+
+   
 
 (* Problem 2e.
    Implement fibsFrom from Homework1 as a single call to foldn.
