@@ -2,7 +2,11 @@
 
    UID: 930713935
 
-   Others With Whom I Discussed Things: Josh Kuroda
+   Others With Whom I Discussed Things:
+   Josh Kuroda
+   Lauren Konchan
+   Adrian Lu
+   Trixie Roque
 
    Other Resources I Consulted: http://caml.inria.fr/
    https://ocaml.org/
@@ -74,8 +78,11 @@ let pack list =
          else aux [] ((a :: current) :: acc) t  in
    List.rev ((aux [] []) list);;
 
-
-(* let encode (l : 'a list) : (int * 'a) list = 
+(* let process l x = 
+   match l with
+   | [] -> [(1, x)]
+   | _::(b)
+let encode (l : 'a list) : (int * 'a) list = 
    fold_left (fun l x -> )
 
 let _ = assert (encode ['a';'a';'a';'b';'c';'c'] = [(3,'a');(1,'b');(2,'c')]);; *)
@@ -153,15 +160,15 @@ let _ = assert (zip [1;2] ['a';'b']  = [(1,'a');(2,'b')]);;
    Implement foldn using explicit recursion.
  *)
 
-(* let rec foldn (f : (int -> int -> 'a)) (n : int) (b : int) : 'a =
+let rec foldn (f : (int -> 'a -> 'a)) (n : int) (b : 'a) : 'a =
    match n with
-   | b -> f n b
+   | 1 -> f n b
    | _ -> f n (foldn (f) (n-1) (b))
 
 
-let _ = assert (foldn (fun x y -> x*y) 5 2 = 5 * 4 * 3 * 2);;
+let _ = assert (foldn (fun x y -> x*y) 5 2 = 5 * 4 * 3 * 2 * 1 * 2);;
 let _ = assert (foldn (fun x y -> x*y) 5 1 = 5 * 4 * 3 * 2 * 1 * 1)
-let _ = assert (foldn (fun x y -> x-y) 5 0 = 5 - (4 - (3 - (2 - (1 - 0))))) *)
+let _ = assert (foldn (fun x y -> x-y) 5 0 = 5 - (4 - (3 - (2 - (1 - 0)))))
 
 (* Problem 2d.
    Implement the clone function from Homework 1 as a single call to
