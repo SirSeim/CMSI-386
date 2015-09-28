@@ -70,11 +70,17 @@ let _ = assert (unzip [(1,'a')] = ([1], ['a']));;
    N is the number of duplicates of the element E.
  *)
 
-(* let encode (l : 'a list) : (int * 'a) list = 
-   
+let encode (l : 'a list) : (int * 'a) list =
+   let rec enc count coll = function
+      | [] -> []
+      | [x] -> (count+1, x) :: coll
+      | a :: (b :: _ as t) -> 
+         if a = b then enc (count + 1) coll t
+            else enc 0 ((count+1,a) :: coll) t in
+            List.rev (enc 0 [] l)
 
 let _ = assert (encode ['a';'a';'a';'b';'c';'c'] = [(3,'a');(1,'b');(2,'c')]);;
- *)
+
 (* Problem 1d
    The function intOfDigits from Homework 1.
  *)
@@ -148,7 +154,9 @@ let _ = assert (zip [1] ['a']  = [(1,'a')]);;
  *)
 
 let rec foldn (fonction : (int -> 'a -> 'a)) (count : int) (base : 'a) : 'a =
-   if count = 1 then fonction count base else fonction count (foldn (fonction) (count-1) base)
+   if count = 0 then base 
+   else if count = 1 then fonction count base 
+   else fonction count (foldn (fonction) (count-1) base)
 
 
 let _ = assert (foldn (fun x y -> x*y) 5 1 = 5 * 4 * 3 * 2 * (1 * 1));;
@@ -161,11 +169,26 @@ let _ = assert (foldn (fun x y -> x+y) 5 3 = 5 + (4 + (3 + (2 + (1 + 3)))));;
    foldn.
  *)
 
-   
+let clone ((article, copie) : 'a * int) : 'a list =
+   foldn (fun a b ->
+         match b with
+         | [] -> []
+         | tete::queue -> tete::(tete::queue))
+         copie [article]
+
+let _ = assert (clone("toast", 1) = ["toast"; "toast"])
+let _ = assert (clone("toast", 0) = ["toast"])
+let _ = assert (clone("toast", 4) = ["toast"; "toast"; "toast"; "toast"; "toast"])
 
 (* Problem 2e.
    Implement fibsFrom from Homework1 as a single call to foldn.
  *)
+
+(* let fibsFrom (n:int) : int list =
+   foldn  *)
+
+(* let _ = assert (fibsFrom 1 = [1;0])
+let _ = assert (fibsFrom 4 = [3;2;1;1;0]) *)
 
 (************************************************************************
  * Problem 3: Dictionaries.
