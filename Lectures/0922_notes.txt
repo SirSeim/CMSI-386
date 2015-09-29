@@ -1,0 +1,307 @@
+Homework 2 asks you to define some functions using List.map,
+List.filter, List.fold_right, and List.fold_left. So far we have only
+covered List.map, but we'll cover the rest in class Tuesday. Until
+then, here's a preview that will help you to get started with the
+homework this weekend.
+
+----------------------------------------------------------------------
+filter
+----------------------------------------------------------------------
+
+filter takes a predicate (a function that returns a boolean) and a
+list, and outputs the list of elements for which the predicate is
+true.
+
+Examples:
+
+* Selecting the positive integers from a list of integers:
+
+    filter (fun x -> x > 0) [-2;-1;0;1;2;32;-5] = [1;2;32]
+
+* Using filter to test if a list contains some value:
+
+    contains 'c' ['a';'b';'c'] = true
+    contains 'd' ['a';'b';'c'] = false
+
+  Algorithm: use filter to select the elements that are equal to
+  the value we are looking for. If the resulting list is empty,
+  we found no such elements. If it is non-empty (i.e. cons), then
+  we found at least one such element.
+
+    let contains v l =
+      let elems_equal_to_v = filter (fun e -> e = v) l in
+      match elems_equal_to_v with
+      | [] -> false
+      | _  -> true
+
+  Exercise: implement contains as a recursive function.
+
+We'll see how filter is implemented in class Tuesday.
+
+----------------------------------------------------------------------
+fold_right
+----------------------------------------------------------------------
+
+fold_right generalizes the recursion pattern used in functions like
+sumList.
+
+  Rules for sumList:
+    sumList [] = 0                          (* Call this the "Nil rule"  *)
+    sumList (x::xs) = x + (sumList xs)      (* Call this the "Cons rule" *)
+
+  Recursive implementation of sumList:
+    let rec sumList l =
+      match l with
+      | [] -> 0
+      | (x::xs) -> x + (sumList xs)
+
+  Example:
+      sumList [1;2;3]   
+    = 1 + (sumList [2;3])          (* Cons rule *)
+    = 1 + (2 + (sumList [3]))      (* Cons rule *)
+    = 1 + (2 + (3 + (sumList []))) (* Cons rule *)
+    = 1 + (2 + (3 + 0))            (* Nil rule *)    
+
+Let's look at another function that uses a similar recursion
+pattern. maxList returns the maximum value contained in a (possibly
+empty) list of positive integers. We'll use a helper function max that
+returns the maximum of two positive integers.
+
+  Rules for max:
+    max x y = x     if x > y      (* Call this the > rule  *)
+    max x y = y     if x <= y     (* Call this the <= rule *)
+
+
+    maxList [] = -1                        (* Call this the Nil rule *)
+    maxList (x::xs) = max x (maxList xs)   (* Call this the Cons rule *)
+
+  Note that the choice of -1 as the maximum of an empty list of
+  positive integers is somewhat arbitrary. We might have chosen 0
+  instead, but this choice allows us to distinguish the max of [] from
+  the max of [0].
+
+  Recursive implementation of max:
+    let rec maxList l =
+      match l with
+      | []    -> -1
+      | x::xs -> max x (maxList xs)
+
+  Example:
+      maxList [1;4;2;3]
+    = max 1 (maxList [4;2;3])                     (* Cons rule *)
+    = max 1 (max 4 (maxList [2;3]))               (* Cons rule *)
+    = max 1 (max 4 (max 2 (maxList [3])))         (* Cons rule *)
+    = max 1 (max 4 (max 2 (max 3 (maxList []))))  (* Cons rule *)
+    = max 1 (max 4 (max 2 (max 3 (-1))))          (* Nil rule  *)
+    = max 1 (max 4 (max 2 3))                     (* > rule    *)
+    = max 1 (max 4 3)                             (* <= rule   *)
+    = max 1 4                                     (* > rule    *)
+    = 4                                           (* <= rule   *)
+   
+Ok, so let's characterize the recursion pattern that sumList and
+maxList are using. They each have one base case and one recursive
+case. The base case for each is the empty list (nil).  The recursive
+case for each is "any non-empty list" -- expressed using the pattern
+(x::xs). Each of sumList and maxList recurse over the tail xs, and
+then incorporate the head element x into the result in some way.
+
+The differences between sumList and maxList are: 
+  - the result for the base case [] (0 vs (-1), respectively).
+  - the way an element is incorporated into the result (+ vs max, respectively).
+      
+fold_right defines this recursion pattern, allowing us to define
+sumList and maxList more succintly.
+
+fold_right takes three arguments:
+  1) a function f defining how an element is incorporated into a result
+  2) a list of elements
+  3) an initial result r
+
+  Rules for fold_right:
+    fold_right f []      r = r                          (* Call this the Nil rule  *)
+    fold_right f (x::xs) r = f x (fold_right f xs c)    (* Call this the Cons rule *)
+  
+  Example: sumList using fold_right
+
+    let sumList l = fold_right (+) l 0
+
+  Note: (+) is shorthand for (fun x y -> x + y)
+
+    sumList [1;2;3]  
+  = fold_right (+) [1;2;3] 0                (* Definition of sumList using fold_right *)
+  = 1 + (fold_right (+) [2;3] 0)            (* Cons rule *)
+  = 1 + (2 + (fold_right (+) [3] 0))        (* Cons rule *)
+  = 1 + (2 + (3 + (fold_right (+) [] 0)))   (* Cons rule *)
+  = 1 + (2 + (3 + 0))                       (* Nil rule *)    
+
+  Example: maxList using fold_right
+  
+    let maxList l = fold_right max l (-1)
+
+     maxList [1;4;2;3]
+   = fold_right max [1;4;2;3] (-1)            (* Definition of maxList using fold_right *)
+   = max 1 (fold_right max [4;2;3] (-1))                     (* Cons rule *)
+   = max 1 (max 4 (fold_right max [2;3] (-1)))               (* Cons rule *)
+   = max 1 (max 4 (max 2 (fold_right max [3] (-1))))         (* Cons rule *)
+   = max 1 (max 4 (max 2 (max 3 (fold_right max [] (-1)))))  (* Cons rule *)
+   = max 1 (max 4 (max 2 (max 3 (-1))))                      (* Nil rule  *)
+
+Using fold_right allows us to program at a higher level of abstraction
+(the recursion pattern has been hidden "abstracted away"). This
+recursion pattern is very common in functional programs (as well as
+imperative and OO programs!).
+
+Exercise: Use fold_right to define a variant of maxList that works for
+both positive and negative integers. We need a new result for the base
+case: currently, maxList [-2;-3;-4] = -1, which is wrong.
+
+----------------------------------------------------------------------
+fold_left
+----------------------------------------------------------------------
+
+Note that fold_right incorporates (or "folds in") the elements of the
+list from right to left: first the last element is folded into the
+result for the base case, then the second-to-last element is folded
+into that result, and so on.
+
+fold_left is very similar to fold_right, except that it folds in
+elements from left to right. It also swaps the order of its arguments.
+
+fold_left takes three arguments:
+  1) a function f defining how an element is incorporated into a result
+  2) an initial result r
+  3) a list of elements
+
+  Rules for fold_left:
+    fold_left f r []      r = r                          (* Call this the Nil rule  *)
+    fold_left f r (x::xs) r = fold_left f (f r x) xs     (* Call this the Cons rule *)
+
+What's going on here? Let's look at some examples. We can define both
+sumList and maxList using fold_left.
+
+  let sumList l = fold_left (+) 0 l
+
+      sumList [1;2;3]  
+    = fold_left (+) 0 [1;2;3]                (* Definition of sumList using fold_left *)
+    = fold_left (+) (0 + 1) [2;3]            (* Cons rule *)
+    = fold_left (+) ((0 + 1) + 2) [3]        (* Cons rule *)
+    = fold_left (+) (((0 + 1) + 2) + 3) []   (* Cons rule *)
+    = ((0 + 1) + 2) + 3                      (* Nil rule *)
+    = (1 + 2) + 3
+    = 3 + 3
+    = 6
+
+  let maxList l = fold_left max (-1) l
+
+    
+     maxList [1;4;2;3]                       (* Definition of maxList using fold_left *)
+   = fold_left max (-1) [1;4;2;3]                             (* Cons rule *)
+   = fold_left max (max (-1) 1) [4;2;3]                       (* Cons rule *)
+   = fold_left max (max (max (-1) 1) 4) [2;3]                 (* Cons rule *)
+   = fold_left max (max (max (max (-1) 1) 4) 2) [3]           (* Cons rule *)
+   = fold_left max (max (max (max (max (-1) 1) 4) 2) 3) []    (* Cons rule *)
+   = max (max (max (max (-1) 1) 4) 2) 3                       (* Nil rule  *)
+   = max (max (max 1 4) 2) 3
+   = max (max 4 2) 3
+   = max 4 3
+   = 4
+
+We can see two key differences between fold_left and fold_right. First
+is the order in which elements are processed or folded in: fold_left
+folds in the list elements from left to right, and fold_right folds in
+the list elements from right to left. The second difference is which
+element is combined with the initial result. fold_left folds the first
+element of the list into the initial result; fold_right folds the last
+element of the list into the initial result. This is why their
+arguments are in different order! 
+
+   fold_left f r [1;2;3]     <--  r is to the left of l; textually near the first element 
+   fold_right f [1;2;3] r    <--  r is to the right of l; textually near the last element
+
+----------------------------------------------------------------------
+
+Note: sumList and maxList can be defined equivalently using either
+fold_right or fold_left. This is not always true. For example:
+
+   fold_right (fun x y -> x - y) [1;2;3] 0 = 2
+   fold_left (fun x y -> x - y) 0 [1;2;3]  = -6
+
+We'll talk more about filter, fold_right, and fold_left (including how
+they are defined) in class Tuesday.
+
+
+
+
+
+
+
+
+(*
+
+Notes about homework 2:
+
+  - You may not use any functions defined in other modules, or
+    built-in functions not covered in class. It is very easy to
+    violate the spirit of the problems! 
+
+  - Your homework should contain no syntax errors, type errors, or
+    failed assertions.  The only reliable way to ensure this is to run
+    it. 
+
+     - If you don't have an OCaml setup that works for you, email me
+       and I'll help you get something better.
+
+       Bare bones:
+         $ ocaml hw2.ml       -- Parse, typecheck, and run the file. 
+                        -- All you really need.
+
+       REPL:
+         $ ocaml
+         # #use "hw2.ml";;    -- Allows you to interact with your code.
+
+         $ rlwrap ocaml       -- Allows you scroll back through input history
+                        -- Google rlwrap.
+         
+
+       IDE-like stuff:
+         ocaml-top            -- Ocaml interactive editor
+                        -- http://www.typerex.org/ocaml-top.html
+
+         tuareg-mode          -- What I use in class.
+            -- https://github.com/ocaml/tuareg
+                        -- For Emacs users; requires some setup.
+            -- I can help.
+       
+
+  - All work must be your own. Do not look at each other's code.  Do
+    not look for solutions online! If you get stumped, email me for a
+    hint or come to office hours.
+
+  - Style: use pattern matching whenever possible. Do not give names
+    to values unless you are going to refer to them later. Use _
+    instead. On the other hand, give a name to a computation instead
+    of computing it twice.
+
+  - Coverage: Every (sub)expression of your code should be evaluated
+    for at least one test.
+
+      In particular, you will lose points if you have any "dead code"
+      that can never be executed.
+
+      Simple example:
+  if x > 0 then E1
+  else if x <= 0 then E2
+  else E3                   (* We can never reach E3 *)
+      
+      The conditions (x > 0) and (x <= 0) are exhaustive. One of these
+      will always be true.
+
+    Why did I ask you to do this? 
+    
+      It makes you think about how your code is going to run. If you
+      can't understand your own code, simplify it.
+
+  - This stuff will affect your grade.
+
+ *)
+
