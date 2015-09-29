@@ -1,0 +1,13 @@
+(*
+Announcements:
+  hw1 solutions later today.
+  hw1 grades early next week.
+  hw2 assigned tomorrow. due a week from Sunday. 
+    start early. 
+    seek help early if you get stuck.
+
+  I added a discussion forum on the course website.
+    - general discussion about OCaml.
+    - share cool resources you may find.
+*)
+
