@@ -1,0 +1,232 @@
+(*
+
+  We were talking about *scope* - how variables names
+  are associated with values.
+
+  Environment notation:
+  
+     [x = 5, y = "hello"]
+ 
+    -- environments map *names* to *values*, which are
+       fully-evaluated expressions.
+
+  Closure notation:
+     (fun x -> x + y)[y = 2]    
+
+    -- function values are "closed" (meaning all names
+       are given values) by attaching the evironment
+       they were defined within.
+
+  Example: evaluating:
+
+    let y = 2 in
+    let f = fun x -> x + y in               
+    f (y + 5)
+
+
+Environment: []
+Expression: 
+    let y = 2 in
+    let f = fun x -> x + y in               
+    f (y + 5)
+    
+  -- First evaluate the "let y" definition. 
+     Value is 2.
+  -- Bind y, and evaluate the "let y" body.
+
+Environment: [y = 2]
+Expression: 
+    let f = fun x -> x + y in               
+    f (y + 5)
+
+  -- Evaluate the "let f" definition.
+  -- Value is (fun x -> x + y)[y = 2]
+  -- Bind f, and evaluate the "let f" body.
+
+Environment: [f = (fun x -> x + y)[y = 2], y = 2]
+Expression: 
+    f (y + 5)
+
+  -- Evaluate function to a value:
+     Value of f: (fun x -> x + y)[y = 2]
+  -- Evaluate argument to a value:
+     Value of (y + 5): 7
+  -- Extend f's closure with the binding x=7,
+     evaluate the body.
+
+Environment: [x = 7, y = 2]
+Expression: 
+    (x + y)
+
+  -- Evaluate
+
+Environment: [x = 7, y = 2]
+Expression: 
+    (7 + 2)
+
+  -- Evaluate
+
+Environment: [x = 7, y = 2]
+Expression: 
+    9
+
+  -- Reached a value, so we're done evaluating function body.
+  -- Revert to previous environment.
+
+Environment: [f = (fun x -> x + y)[y = 2], y = 2]
+Expression:
+    9
+
+  -- Reached a value, so we're done evaluating "let f" body.
+  -- Revert to previous environment.
+
+Environment: [y = 2]
+Expression:
+    9
+
+  -- Reached a value, so we're done evaluating "let y" body.
+  -- Revert to previous environment.
+
+Environment: []
+Expression:
+    9
+
+  -- Done!
+
+
+Static scoping is also required to handle currying properly.
+
+ *)
+
+let add x y = x + y;;
+let addTwo = add 2;;
+let _ = addTwo 8;;
+let x = 12;;
+let _ = addTwo 8;;
+let y = 0;;
+let _ = addTwo 8;;
+
+(*
+
+Initial top-level environment: []
+
+# let add x y = x + y
+
+Top-level environment: [ add = (fun x y -> x + y)[] ]
+
+# let addTwo = add 2
+
+  - Extend add's environment with x = 2, and run body.
+
+  (fun y -> x + y)       [x = 2]
+
+  - Value is (fun y -> x + y)[x = 2]
+  - Revert to top-level environment, and extend with
+    the definition of addTwo
+
+Top-level environment: 
+  [ addTwo = (fun y -> x + y)[x=2],
+    add = (fun x y -> x + y)[]
+  ]
+
+# addTwo 8
+
+  - Extend addTwo's environment with y = 8, and run body.
+
+
+  x + y               [y = 8, x = 2]
+  2 + y               [y = 8, x = 2]
+  2 + 8               [y = 8, x = 2]
+  10                  [y = 8, x = 2]
+
+Top-level environment: 
+  [ addTwo = (fun y -> x + y)[x=2],
+    add = (fun x y -> x + y)[]
+  ]
+
+# let x = 12
+
+  - extend top-level environment with x = 12
+
+Top-level environment: 
+  [ x = 12,
+    addTwo = (fun y -> x + y)[x=2],
+    add = (fun x y -> x + y)[]
+  ]
+
+# addTwo 8
+
+  - Extend addTwo's environment with y = 8, and run body.
+
+   x + y              [y = 8, x = 2]
+
+Top-level environment: 
+  [ x = 12,
+    addTwo = (fun y -> x + y)[x=2],
+    add = (fun x y -> x + y)[]
+  ]
+
+
+# let y = 0
+
+  - extend top-level environment with y = 0
+
+Top-level environment: 
+  [ y = 0,
+    x = 12,
+    addTwo = (fun y -> x + y)[x=2],
+    add = (fun x y -> x + y)[]
+  ]
+
+# addTwo 8
+
+  - Extend addTwo's environment with y = 8, and run body.
+
+   x + y              [y = 8, x = 2]
+
+Top-level environment: 
+  [ y = 0,
+    x = 12,
+    addTwo = (fun y -> x + y)[x=2],
+    add = (fun x y -> x + y)[]
+  ]
+
+This example demonstrates the concept of *lifetime*: 
+how long a variable definition is "in scope somewhere".
+In the environment:
+
+  [ addTwo = (fun y -> x + y)[x=2],
+    add = (fun x y -> x + y)[]
+  ]
+
+The definition x=2 is not in scope. In fact no definition
+of x is in scope (we can't refer to it at all). 
+
+Now this environment:
+
+  [ x = 12,
+    addTwo = (fun y -> x + y)[x=2],
+    add = (fun x y -> x + y)[]
+  ]
+
+Here the definition x=12 is in scope, and x=2 is not 
+in scope. If we refer to x, we get the value 12.
+
+Yet in both of these environments, the definition
+x=2 is *live*, because it is possible to refer to
+it (by calling addTwo).
+
+
+let x = 14;;
+
+
+  [ x = 14,
+    x = 12,
+    addTwo = (fun y -> x + y)[x=2],
+    add = (fun x y -> x + y)[]
+  ]
+
+The definition x=12 is shadowed by x=14;
+
+ *)
+
