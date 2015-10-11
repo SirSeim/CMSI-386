@@ -1,8 +1,10 @@
-(* Name:
+(* Name: Edward Seim
 
-   UID:
+   UID: 930713935
 
    Others With Whom I Discussed Things:
+   Adrian Lu
+   Joshua Kuroda
 
    Other Resources I Consulted:
    
@@ -58,8 +60,16 @@ let rec patMatch (pat:mopat) (value:movalue) : moenv =
   match (pat, value) with
       (* an integer pattern matches an integer only when they are the same constant;
 	 no variables are declared in the pattern so the returned environment is empty *)
-      (IntPat(i), IntVal(j)) when i=j -> Env.empty_env()
-    | _ -> raise (ImplementMe "patMatch")
+    | (IntPat(i), IntVal(j)) when i=j -> Env.empty_env()
+    | (IntPat(_), _) -> raise MatchFailure
+    | (BoolPat(i), BoolVal(j)) when i=j -> Env.empty_env()
+    | (BoolPat(_), _) -> raise MatchFailure
+    | (VarPat(i), _) -> (Env.add_binding (i) (value) (Env.empty_env()))
+    | (NilPat, NilVal) -> Env.empty_env()
+    | (NilPat, _) -> raise MatchFailure
+    | (ConsPat(i1,i2), ConsVal(j1,j2)) -> Env.combine_envs (patMatch i1 j1) (patMatch i2 j2)
+    | (WildcardPat, _) -> Env.empty_env()
+    | _ -> raise MatchFailure
 
 
 (* patMatchTest defines a test case for the patMatch function.
@@ -122,7 +132,10 @@ List.map patMatchTest patMatchTests;;
    raise the MatchFailure exception.
  *)
 let rec matchCases (value : movalue) (cases : (mopat * moexpr) list) : moenv * moexpr =
-  raise (ImplementMe "matchCases")
+  match (value, cases) with
+  | (value, (pat, expr)::tl) -> (try ((patMatch pat value), expr) with
+      | MatchFailure -> matchCases value tl)
+  | _ -> raise MatchFailure
 
 (* We'll use these cases for our tests.
    To make it easy to identify which case is selected, we make
