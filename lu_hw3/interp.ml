@@ -2,7 +2,7 @@
 
    UID: 977089943
 
-   Others With Whom I Discussed Things:
+   Others With Whom I Discussed Things: Rodrigo "Hot Rod" Seim, Josh Kudora, Loryn Konchyn, Matthew "(*Celebrate!*)" Brown
 
    Other Resources I Consulted:
    
@@ -59,12 +59,17 @@ let rec patMatch (pat:mopat) (value:movalue) : moenv =
       (* an integer pattern matches an integer only when they are the same constant;
 	 no variables are declared in the pattern so the returned environment is empty *)
       (IntPat(i), IntVal(j)) when i=j -> Env.empty_env()
-    | (IntPat(_), IntVal(_)) -> Exception MatchFailure
-    | (IntPat(_), BoolVal(_)) -> Exception MatchFailure
-    | (IntPat(_), VarPat(_)) -> Exception MatchFailure
-    | (IntPat(_), NilPat(_)) -> Exception MatchFailure
-    | (Int)
-    | _ -> raise (ImplementMe "patMatch")
+    | (IntPat(_), IntVal(_)) -> raise MatchFailure
+    | (IntPat(_), _) -> raise MatchFailure
+    | (BoolPat(i), BoolVal(j)) when i=j -> Env.empty_env()
+    | (BoolPat(_), BoolVal(_)) -> raise MatchFailure
+    | (BoolPat(_), _) -> raise MatchFailure
+    | (VarPat(i), _) -> (Env.add_binding (i) (value) (Env.empty_env()))
+    | (ConsPat(ia, ib), ConsVal(ja, jb)) -> (Env.combine_envs (patMatch ia ja) (patMatch ib jb))
+    | (NilPat, NilVal) -> Env.empty_env()
+    | (NilPat, _) -> raise MatchFailure
+    | (WildcardPat, _) -> Env.empty_env()
+    | _ -> raise MatchFailure
 
 
 (* patMatchTest defines a test case for the patMatch function.
