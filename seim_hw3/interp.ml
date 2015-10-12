@@ -5,6 +5,9 @@
    Others With Whom I Discussed Things:
    Adrian Lu
    Joshua Kuroda
+   Lauren Konchan
+   Trixie Roque
+   Joel Homen
 
    Other Resources I Consulted:
    
@@ -190,8 +193,40 @@ let tieTheKnot nm v =
 let rec evalExpr (e:moexpr) (env:moenv) : movalue =
   match e with
     (* an integer constant evaluates to itself *)
-    IntConst(i) -> IntVal(i)
-  | _ -> raise (ImplementMe "evalExpr")
+  | IntConst(i) -> IntVal(i)
+  | BoolConst(i) -> BoolVal(i)
+  | Nil -> NilVal
+  | Var(i) -> Env.lookup i env
+
+  | BinOp(IntConst(i), Plus, IntConst(j)) -> IntVal(i+j)
+  | BinOp(IntConst(i), Minus, IntConst(j)) -> IntVal(i-j)
+  | BinOp(IntConst(i), Times, IntConst(j)) -> IntVal(i*j)
+  | BinOp(IntConst(i), Eq, IntConst(j)) -> BoolVal(i=j)
+  | BinOp(IntConst(i), Gt, IntConst(j)) -> BoolVal(i>j)
+  | BinOp(i, Cons, j) -> ConsVal(evalExpr i env, evalExpr j env)
+  | BinOp(_,_,_) -> raise (DynamicTypeError "This binary operation only works with integers")
+
+  | Negate(IntConst(i)) -> IntVal(-i)
+  | Negate(BoolConst(i)) -> BoolVal(not i)
+  | Negate(BinOp(IntConst(i), Plus, IntConst(j))) -> IntVal(i-j)
+  | Negate(BinOp(IntConst(i), Minus, IntConst(j))) -> IntVal(i+j)
+  | Negate(BinOp(IntConst(i), Times, IntConst(j))) -> IntVal(i/j)
+  | Negate(BinOp(IntConst(i), Eq, IntConst(j))) -> BoolVal(i!=j)
+  | Negate(BinOp(IntConst(i), Gt, IntConst(j))) -> BoolVal(i<=j)
+  | Negate(BinOp(i, Cons, j)) -> ConsVal(evalExpr (Negate(i)) env, evalExpr (Negate(j)) env)
+
+  | If(i,j,k) -> if ((evalExpr i env) = BoolVal(true)) then evalExpr j env else evalExpr k env
+
+  | Fun(p,e) -> FunVal(None, p, e, env)
+
+  | FunCall(e1,e2) -> match (evalExpr e1 env) with
+      | FunVal(n,p,e,v) -> let newEnv = Env.combine_envs env (patMatch p (evalExpr e2 v)) in evalExpr e newEnv
+      | _ -> raise (DynamicTypeError "first expression does not resolve to a FunVal")
+
+  | Match(ex, (p,e)::tl) -> match (evalExpr ex env) with
+      | p -> evalExpr e env
+      | _ -> evalExpr Match(ex,tl)
+  | _ -> raise MatchFailure
 
 (* evalExprTest defines a test case for the evalExpr function.
    inputs: 
@@ -210,7 +245,7 @@ let evalExprTests = [
     ("IntConst",    IntConst 5,                              Value (IntVal 5))
   ; ("BoolConst",   BoolConst true,                          Value (BoolVal true))
   ; ("Plus",        BinOp(IntConst 1, Plus, IntConst 1),     Value (IntVal 2))
-  ; ("BadPlus",     BinOp(BoolConst true, Plus, IntConst 1), Exception (DynamicTypeError "You should change this to be a more informative message"))
+  ; ("BadPlus",     BinOp(BoolConst true, Plus, IntConst 1), Exception (DynamicTypeError "This binary operation only works with integers"))
   ; ("Let",         Let(VarPat "x", IntConst 1, Var "x"),    Value (IntVal 1))
   ; ("Fun",         FunCall(
 			Fun(VarPat "x", Var "x"),
