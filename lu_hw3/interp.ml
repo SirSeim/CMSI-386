@@ -264,14 +264,34 @@ let evalExprTest (nm,expr,expected) =
       ADD YOUR OWN!
  *)
 let evalExprTests = [
-    ("IntConst",    IntConst 5,                              Value (IntVal 5))
-  ; ("BoolConst",   BoolConst true,                          Value (BoolVal true))
-  ; ("Plus",        BinOp(IntConst 1, Plus, IntConst 1),     Value (IntVal 2))
-  ; ("BadPlus",     BinOp(BoolConst true, Plus, IntConst 1), Exception (DynamicTypeError "I can only perform this action on Integers"))
-  ; ("Let",         Let(VarPat "x", IntConst 1, Var "x"),    Value (IntVal 1))
+    ("IntConst",    IntConst 5,                                     Value (IntVal 5))
+  ; ("BoolConst",   BoolConst true,                                 Value (BoolVal true))
+  ; ("Nil",         Nil,                                            Value (NilVal))
+  ; ("Plus",        BinOp(IntConst 1, Plus, IntConst 1),            Value (IntVal 2))
+  ; ("BadPlus",     BinOp(BoolConst true, Plus, IntConst 1),        Exception (DynamicTypeError "I can only perform this action on Integers"))
+  ; ("Minus",       BinOp(IntConst 2, Minus, IntConst 1),           Value (IntVal 1))
+  ; ("BadMinus",    BinOp(IntConst 2, Minus, BoolConst true),       Exception (DynamicTypeError "I can only perform this action on Integers"))
+  ; ("Times",       BinOp(IntConst 2, Times, IntConst 2),           Value (IntVal 4))
+  ; ("BadTimes",    BinOp(BoolConst true, Times, IntConst 4),       Exception (DynamicTypeError "I can only perform this action on Integers"))
+  ; ("EqualsTrue",  BinOp(IntConst 2, Eq, IntConst 2),              Value (BoolVal true))
+  ; ("EqualsFalse", BinOp(IntConst 2, Eq, IntConst 3),              Value (BoolVal false))
+  ; ("BadEquals",   BinOp(IntConst 2, Eq, BoolConst true),          Exception (DynamicTypeError "I can only perform this action on Integers"))
+  ; ("GtTrue",     BinOp(IntConst 420, Gt, IntConst 69),              Value (BoolVal true))
+  ; ("GtFalse",    BinOp(IntConst 69, Gt, IntConst 420),              Value (BoolVal false))
+  ; ("BadGt",       BinOp(BoolConst true, Gt, IntConst 3),          Exception (DynamicTypeError "I can only perform this action on Integers"))
+  ; ("NegInt",      Negate(IntConst 420),                             Value (IntVal (-420)))
+  ; ("NegBool",     Negate(BoolConst true),                         Value (BoolVal false))
+  ; ("NegNil",      Negate(Nil),                                    Value (NilVal))
+  ; ("NegSum",      Negate(BinOp(IntConst 69, Plus, IntConst 420)),    Value (IntVal (-489)))
+  ; ("BadNeg",      Negate(BinOp(BoolConst true, Plus, IntConst 1)),Exception (DynamicTypeError "I can only perform this action on Integers"))
+  ; ("If",          If(BoolConst true, IntConst 4, IntConst 2),     Value (IntVal 4))
+  ; ("BetterIf",    If(BinOp(IntConst 2, Eq, IntConst 2),
+      IntConst 6, IntConst 3),                                      Value (IntVal 6))
+
+  ; ("Let",         Let(VarPat "x", IntConst 1, Var "x"),       Value (IntVal 1))
   ; ("Fun",         FunCall(
-			Fun(VarPat "x", Var "x"),
-			IntConst 5),                         Value (IntVal 5))
+      Fun(VarPat "x", Var "x"),
+      IntConst 5),                         Value (IntVal 5))
   ]
 ;;
 
