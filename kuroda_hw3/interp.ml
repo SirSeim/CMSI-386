@@ -1,3 +1,4 @@
+
 (*
 Name: Joshua Kuroda
 
@@ -247,8 +248,14 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
   | Negate (Nil) -> NilVal
   *)
 
-  | Negate ()
   | Negate (BinOp(i, Cons, j)) -> ConsVal(evalExpr(Negate(i)) env, evalExpr(Negate(j)) env) 
+  | Negate(input) -> (
+      match (evalExpr input env) with
+        | IntVal(input_) -> IntVal(-input_)
+        | BoolVal(input_) -> BoolVal(not input_)
+        | NilVal -> NilVal
+        | _ -> raise MatchFailure
+      )
 
  (* 
   | Negate (BinOp(IntConst(i), Plus, IntConst(j))) -> IntVal(i - j)
@@ -286,7 +293,7 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
 
   | LetRec (s, t, u) -> tieTheKnot s (evalExpr (FunCall (t, u)) env)
 
-  | _ -> raise (MatchFailure)
+  (* | _ -> raise (MatchFailure) *)
 
 (* evalExprTest defines a test case for the evalExpr function.
    inputs: 
@@ -329,13 +336,13 @@ let evalExprTests = [
       FunCall(Fun(VarPat "x", BinOp(Var "x", Times, IntConst 2)), IntConst 4)),       
                                                                  Value (IntVal 48))
 
-  ; ("DeepEq",      BinOp(FunCall(Fun(VarPat "x", BinOp(Var "x", Eq, IntConst 1)), IntConst 1), Eq, 
-      FunCall(Fun(VarPat "x", BinOp(IntConst 2, Eq, Var "x")), IntConst 2)),          
-                                                                 Value (BoolVal true))
+  ; ("DeepEq",      BinOp(FunCall(Fun(VarPat "x", BinOp(Var "x", Plus, IntConst 1)), IntConst 1), Eq, 
+      FunCall(Fun(VarPat "x", BinOp(IntConst 2, Minus, Var "x")), IntConst 2)),          
+                                                                 Value (BoolVal false))
 
-  ; ("DeepGt",      BinOp(FunCall(Fun(VarPat "x", BinOp(Var "x", Gt, IntConst 0)), IntConst 2), Gt, 
-      FunCall(Fun(VarPat "x", BinOp(IntConst 3, Gt, Var "x")), IntConst 2)),          
-                                                                 Value (BoolVal true))
+  ; ("DeepGt",      BinOp(FunCall(Fun(VarPat "x", BinOp(Var "x", Times, IntConst 0)), IntConst 2), Gt, 
+      FunCall(Fun(VarPat "x", BinOp(IntConst 3, Plus, Var "x")), IntConst 2)),          
+                                                                 Value (BoolVal false))
 
   ; ("Cons",        BinOp(IntConst 1, Cons, IntConst 2),         Value (ConsVal(IntVal 1, IntVal 2)))
 
@@ -343,9 +350,9 @@ let evalExprTests = [
   ; ("NegateBool",  Negate(BoolConst true),                      Value (BoolVal false))
   ; ("NegateNil",   Negate(Nil),                                 Value (NilVal))
 
-  ; ("NegatePlus",  Negate(BinOp(IntConst 1, Plus, IntConst 1)), Value (IntVal 0))
-  ; ("NegateMinus", Negate(BinOp(IntConst 1, Minus, IntConst 1)),Value (IntVal 2))
-  ; ("NegateTimes", Negate(BinOp(IntConst 4, Times, IntConst 2)),Value (IntVal 2))
+  ; ("NegatePlus",  Negate(BinOp(IntConst 1, Plus, IntConst 1)), Value (IntVal (-2)))
+  ; ("NegateMinus", Negate(BinOp(IntConst 2, Minus, IntConst 4)),Value (IntVal 2))
+  ; ("NegateTimes", Negate(BinOp(IntConst 4, Times, IntConst 2)),Value (IntVal (-8)))
   ; ("NegateEq",    Negate(BinOp(IntConst 1, Eq, IntConst 1)),   Value (BoolVal false))
   ; ("NegateGt",    Negate(BinOp(IntConst 2, Gt, IntConst 1)),   Value (BoolVal false))
   ; ("NegateCons",  Negate(BinOp(IntConst 1, Cons, IntConst 1)), Value (ConsVal(IntVal(-1), IntVal(-1))))
