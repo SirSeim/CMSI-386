@@ -8,6 +8,7 @@
    Lauren Konchan
    Trixie Roque
    Joel Homen
+   Victor Frolov
 
    Other Resources I Consulted:
    
@@ -219,13 +220,15 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
 
   | Fun(p,e) -> FunVal(None, p, e, env)
 
-  | FunCall(e1,e2) -> match (evalExpr e1 env) with
+  | FunCall(e1,e2) -> (match (evalExpr e1 env) with
       | FunVal(n,p,e,v) -> let newEnv = Env.combine_envs env (patMatch p (evalExpr e2 v)) in evalExpr e newEnv
       | _ -> raise (DynamicTypeError "first expression does not resolve to a FunVal")
+    )
 
-  | Match(ex, (p,e)::tl) -> match (evalExpr ex env) with
-      | p -> evalExpr e env
-      | _ -> evalExpr Match(ex,tl)
+  | Match(ex, l) -> let v, e = matchCases (evalExpr ex env) l in evalExpr e env
+
+  | Let(p,e1,e2) -> evalExpr e2 (Env.combine_envs env (patMatch p (evalExpr e1 env)))
+  | LetRec(nm,e1,e2) -> tieTheKnot nm (evalExpr (FunCall(e1,e2)) env)
   | _ -> raise MatchFailure
 
 (* evalExprTest defines a test case for the evalExpr function.
