@@ -237,14 +237,13 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
     )
   | BinOp(i, Cons, j) -> ConsVal(evalExpr i env, evalExpr j env)
 
-  | Negate(IntConst(i)) -> IntVal(-i)
-  | Negate(BoolConst(i)) -> BoolVal(not i)
-  | Negate(BinOp(IntConst(i), Plus, IntConst(j))) -> IntVal(i-j)
-  | Negate(BinOp(IntConst(i), Minus, IntConst(j))) -> IntVal(i+j)
-  | Negate(BinOp(IntConst(i), Times, IntConst(j))) -> IntVal(i/j)
-  | Negate(BinOp(IntConst(i), Eq, IntConst(j))) -> BoolVal(i!=j)
-  | Negate(BinOp(IntConst(i), Gt, IntConst(j))) -> BoolVal(i<=j)
   | Negate(BinOp(i, Cons, j)) -> ConsVal(evalExpr (Negate(i)) env, evalExpr (Negate(j)) env)
+  | Negate(i) -> (match (evalExpr i env) with
+      | IntVal(iv) -> IntVal(-iv)
+      | BoolVal(iv) -> BoolVal(not iv)
+      | NilVal -> NilVal
+      | _ -> raise MatchFailure
+    )
 
   | If(i,j,k) -> if ((evalExpr i env) = BoolVal(true)) then evalExpr j env else evalExpr k env
 
@@ -258,7 +257,7 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
   | Match(ex, l) -> let v, e = matchCases (evalExpr ex env) l in evalExpr e env
 
   | Let(p,e1,e2) -> evalExpr e2 (Env.combine_envs env (patMatch p (evalExpr e1 env)))
-  | LetRec(nm,e1,e2) -> tieTheKnot nm (evalExpr (FunCall(e1,e2)) env)
+  | LetRec(nm,e1,e2) -> evalExpr FunCall((tieTheKnot nm (evalExpr Fun(VarPat(nm),e1) env)),e2)
   | _ -> raise MatchFailure
 
 (* evalExprTest defines a test case for the evalExpr function.
