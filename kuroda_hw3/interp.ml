@@ -189,7 +189,7 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
     IntConst (i) -> IntVal(i)
   | BoolConst (i) -> BoolVal(i)
   | Nil -> NilVal
-  | Var (i) -> Env.lookup i env
+  (* | Var (i) -> Env.lookup i env *)
 
   | BinOp (IntConst(i), Plus, IntConst(j)) -> IntVal(i + j)
   | BinOp (IntConst(i), Minus, IntConst(j)) -> IntVal(i - j)
