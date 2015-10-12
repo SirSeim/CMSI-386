@@ -199,13 +199,42 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
   | Nil -> NilVal
   | Var(i) -> Env.lookup i env
 
-  | BinOp(IntConst(i), Plus, IntConst(j)) -> IntVal(i+j)
-  | BinOp(IntConst(i), Minus, IntConst(j)) -> IntVal(i-j)
-  | BinOp(IntConst(i), Times, IntConst(j)) -> IntVal(i*j)
-  | BinOp(IntConst(i), Eq, IntConst(j)) -> BoolVal(i=j)
-  | BinOp(IntConst(i), Gt, IntConst(j)) -> BoolVal(i>j)
+  | BinOp(i, Plus, j) -> (match (evalExpr i env) with
+      | IntVal(iv) -> (match (evalExpr j env) with
+          | IntVal(jv) -> IntVal(iv+jv)
+          | _ -> raise (DynamicTypeError "This binary operation only works with integers")
+        )
+      | _ -> raise (DynamicTypeError "This binary operation only works with integers")
+    )
+  | BinOp(i, Minus, j) -> (match (evalExpr i env) with
+      | IntVal(iv) -> (match (evalExpr j env) with
+          | IntVal(jv) -> IntVal(iv-jv)
+          | _ -> raise (DynamicTypeError "This binary operation only works with integers")
+        )
+      | _ -> raise (DynamicTypeError "This binary operation only works with integers")
+    )
+  | BinOp(i, Times, j) -> (match (evalExpr i env) with
+      | IntVal(iv) -> (match (evalExpr j env) with
+          | IntVal(jv) -> IntVal(iv*jv)
+          | _ -> raise (DynamicTypeError "This binary operation only works with integers")
+        )
+      | _ -> raise (DynamicTypeError "This binary operation only works with integers")
+    )
+  | BinOp(i, Eq, j) -> (match (evalExpr i env) with
+      | IntVal(iv) -> (match (evalExpr j env) with
+          | IntVal(jv) -> BoolVal(iv=jv)
+          | _ -> raise (DynamicTypeError "This binary operation only works with integers")
+        )
+      | _ -> raise (DynamicTypeError "This binary operation only works with integers")
+    )
+  | BinOp(i, Gt, j) -> (match (evalExpr i env) with
+      | IntVal(iv) -> (match (evalExpr j env) with
+          | IntVal(jv) -> BoolVal(iv>jv)
+          | _ -> raise (DynamicTypeError "This binary operation only works with integers")
+        )
+      | _ -> raise (DynamicTypeError "This binary operation only works with integers")
+    )
   | BinOp(i, Cons, j) -> ConsVal(evalExpr i env, evalExpr j env)
-  | BinOp(_,_,_) -> raise (DynamicTypeError "This binary operation only works with integers")
 
   | Negate(IntConst(i)) -> IntVal(-i)
   | Negate(BoolConst(i)) -> BoolVal(not i)
