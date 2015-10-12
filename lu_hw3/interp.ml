@@ -4,7 +4,7 @@
 
    Others With Whom I Discussed Things: Rodrigo "Hot Rod" Seim, Josh Kudora, Loryn Konchyn, Matthew "(*Celebrate!*)" Brown
 
-   Other Resources I Consulted:
+   Other Resources I Consulted: i dun evn kno ne mor
    
 *)
 
@@ -132,8 +132,10 @@ List.map patMatchTest patMatchTests;;
    raise the MatchFailure exception.
  *)
 let rec matchCases (value : movalue) (cases : (mopat * moexpr) list) : moenv * moexpr =
-  raise (ImplementMe "matchCases")
-
+  match (value, cases) with
+  | (value, (pattern, expression)::tl) -> (try ((patMatch pattern value), expression) with
+      | MatchFailure -> matchCases value tl)
+  | _ -> raise MatchFailure
 (* We'll use these cases for our tests.
    To make it easy to identify which case is selected, we make
  *)
@@ -218,5 +220,3 @@ let evalExprTests = [
 List.map evalExprTest evalExprTests;;
 
 (* See test.ml for a nicer way to write more tests! *)
-  
-
