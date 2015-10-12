@@ -197,8 +197,9 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
   | IntConst(i) -> IntVal(i)
   | BoolConst(i) -> BoolVal(i)
   | Nil -> NilVal
-  | Var(i) -> Env.lookup i env
-
+  | Var(i) -> (try (Env.lookup i env) with
+      Env.NotBound -> raise (DynamicTypeError "varibale not found in environment")
+    )
   | BinOp(i, Plus, j) -> (match (evalExpr i env) with
       | IntVal(iv) -> (match (evalExpr j env) with
           | IntVal(jv) -> IntVal(iv+jv)
