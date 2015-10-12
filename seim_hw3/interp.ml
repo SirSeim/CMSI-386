@@ -237,7 +237,6 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
     )
   | BinOp(i, Cons, j) -> ConsVal(evalExpr i env, evalExpr j env)
 
-  | Negate(BinOp(i, Cons, j)) -> ConsVal(evalExpr (Negate(i)) env, evalExpr (Negate(j)) env)
   | Negate(i) -> (match (evalExpr i env) with
       | IntVal(iv) -> IntVal(-iv)
       | BoolVal(iv) -> BoolVal(not iv)
@@ -257,8 +256,9 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
   | Match(ex, l) -> let v, e = matchCases (evalExpr ex env) l in evalExpr e env
 
   | Let(p,e1,e2) -> evalExpr e2 (Env.combine_envs env (patMatch p (evalExpr e1 env)))
-  | LetRec(nm,e1,e2) -> evalExpr FunCall((tieTheKnot nm (evalExpr Fun(VarPat(nm),e1) env)),e2)
-  | _ -> raise MatchFailure
+  | LetRec(nm,e1,e2) -> evalExpr e2 (Env.combine_envs env (patMatch (VarPat(nm)) (evalExpr e1 env)))
+  (* evalExpr (FunCall((tieTheKnot nm (evalExpr (Fun(VarPat(nm),e1)) env)),e2)) env *)
+  (* | _ -> raise MatchFailure *)
 
 (* evalExprTest defines a test case for the evalExpr function.
    inputs: 
@@ -274,11 +274,33 @@ let evalExprTest (nm,expr,expected) =
       ADD YOUR OWN!
  *)
 let evalExprTests = [
-    ("IntConst",    IntConst 5,                              Value (IntVal 5))
-  ; ("BoolConst",   BoolConst true,                          Value (BoolVal true))
-  ; ("Plus",        BinOp(IntConst 1, Plus, IntConst 1),     Value (IntVal 2))
-  ; ("BadPlus",     BinOp(BoolConst true, Plus, IntConst 1), Exception (DynamicTypeError "This binary operation only works with integers"))
-  ; ("Let",         Let(VarPat "x", IntConst 1, Var "x"),    Value (IntVal 1))
+    ("IntConst",    IntConst 5,                                     Value (IntVal 5))
+  ; ("BoolConst",   BoolConst true,                                 Value (BoolVal true))
+  ; ("Nil",         Nil,                                            Value (NilVal))
+
+  ; ("Plus",        BinOp(IntConst 1, Plus, IntConst 1),            Value (IntVal 2))
+  ; ("BadPlus",     BinOp(BoolConst true, Plus, IntConst 1),        Exception (DynamicTypeError "This binary operation only works with integers"))
+  ; ("Minus",       BinOp(IntConst 2, Minus, IntConst 1),           Value (IntVal 1))
+  ; ("BadMinus",    BinOp(IntConst 2, Minus, BoolConst true),       Exception (DynamicTypeError "This binary operation only works with integers"))
+  ; ("Times",       BinOp(IntConst 2, Times, IntConst 2),           Value (IntVal 4))
+  ; ("BadTimes",    BinOp(BoolConst true, Times, IntConst 4),       Exception (DynamicTypeError "This binary operation only works with integers"))
+  ; ("EqualsTrue",  BinOp(IntConst 2, Eq, IntConst 2),              Value (BoolVal true))
+  ; ("EqualsFalse", BinOp(IntConst 2, Eq, IntConst 3),              Value (BoolVal false))
+  ; ("BadEquals",   BinOp(IntConst 2, Eq, BoolConst true),          Exception (DynamicTypeError "This binary operation only works with integers"))
+  ; ("Gt True",     BinOp(IntConst 3, Gt, IntConst 2),              Value (BoolVal true))
+  ; ("Gt False",    BinOp(IntConst 3, Gt, IntConst 3),              Value (BoolVal false))
+  ; ("BadGt",       BinOp(BoolConst true, Gt, IntConst 3),          Exception (DynamicTypeError "This binary operation only works with integers"))
+
+  ; ("NegInt",      Negate(IntConst 1),                             Value (IntVal (-1)))
+  ; ("NegBool",     Negate(BoolConst true),                         Value (BoolVal false))
+  ; ("NegNil",      Negate(Nil),                                    Value (NilVal))
+  ; ("NegSum",      Negate(BinOp(IntConst 2, Plus, IntConst 2)),    Value (IntVal (-4)))
+  ; ("BadNeg",      Negate(BinOp(BoolConst true, Plus, IntConst 1)),Exception (DynamicTypeError "This binary operation only works with integers"))
+  ; ("If",          If(BoolConst true, IntConst 4, IntConst 2),     Value (IntVal 4))
+  ; ("BetterIf",    If(BinOp(IntConst 2, Eq, IntConst 2),
+      IntConst 6, IntConst 3),                                      Value (IntVal 6))
+
+  ; ("Let",         Let(VarPat "x", IntConst 1, Var "x"),       Value (IntVal 1))
   ; ("Fun",         FunCall(
 			Fun(VarPat "x", Var "x"),
 			IntConst 5),                         Value (IntVal 5))
