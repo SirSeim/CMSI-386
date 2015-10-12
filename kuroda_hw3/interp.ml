@@ -141,7 +141,8 @@ let testCases : (mopat * moexpr) list =
    (IntPat 1, Var "case 1");
    (IntPat 2, Var "case 2");
    (ConsPat (VarPat "head", VarPat "tail"), Var "case 3");
-   (BoolPat true, Var "case 4")
+   (BoolPat true, Var "case 4");
+   (NilPat, Var "case 5")
   ]
 
 (* matchCasesTest: defines a test for the matchCases function.
@@ -160,11 +161,13 @@ let matchCasesTests = [
     ("IntVal«1", IntVal 1, Value ([], Var "case 1"))
   ; ("IntVal«2", IntVal 2, Value ([], Var "case 2"))
 
-  ; ("ConsVal", ConsVal(IntVal 1, ConsVal(IntVal 2, NilVal)), 
+  ; ("ConsVal«1", ConsVal(IntVal 1, ConsVal(IntVal 2, NilVal)), 
      Value ([("tail", ConsVal(IntVal 2, NilVal)); ("head", IntVal 1)], Var "case 3"))
 
   ; ("BoolVal«true",  BoolVal true,  Value ([], Var "case 4"))
   ; ("BoolVal«false", BoolVal false, Exception MatchFailure)
+
+  ; ("NilVal", NilVal, Value([], Var "case 5"))
   ]
 ;;
 
@@ -248,7 +251,6 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
   | Negate (Nil) -> NilVal
   *)
 
-  | Negate (BinOp(i, Cons, j)) -> ConsVal(evalExpr(Negate(i)) env, evalExpr(Negate(j)) env) 
   | Negate(input) -> (
       match (evalExpr input env) with
         | IntVal(input_) -> IntVal(-input_)
@@ -291,7 +293,9 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
   | Let (pat, i, j) -> 
       evalExpr j (Env.combine_envs (patMatch pat (evalExpr i env)) env)
 
-  | LetRec (s, t, u) -> tieTheKnot s (evalExpr (FunCall (t, u)) env)
+  (* | LetRec (s, t, u) -> tieTheKnot s (evalExpr (FunCall (t, u)) env) *)
+  | LetRec (s, t, u) -> tieTheKnot s (evalExpr t env)
+  (* | LetRec (s, t, u) -> tieTheKnot s (evalExpr (FunCall(t, u)) patMatch VarPat(s) u) *)
 
   (* | _ -> raise (MatchFailure) *)
 
@@ -355,15 +359,15 @@ let evalExprTests = [
   ; ("NegateTimes", Negate(BinOp(IntConst 4, Times, IntConst 2)),Value (IntVal (-8)))
   ; ("NegateEq",    Negate(BinOp(IntConst 1, Eq, IntConst 1)),   Value (BoolVal false))
   ; ("NegateGt",    Negate(BinOp(IntConst 2, Gt, IntConst 1)),   Value (BoolVal false))
-  ; ("NegateCons",  Negate(BinOp(IntConst 1, Cons, IntConst 1)), Value (ConsVal(IntVal(-1), IntVal(-1))))
 
   ; ("IfTrue",          If(BoolConst true, BinOp(IntConst 1, Plus, IntConst 1), 
       BinOp(IntConst 1, Minus, IntConst 1)),                     Value (IntVal 2))
-  ; ("IfFalse",          If(BoolConst false, BinOp(IntConst 1, Plus, IntConst 1), 
+  ; ("IfFalse",         If(BoolConst false, BinOp(IntConst 1, Plus, IntConst 1), 
       BinOp(IntConst 1, Minus, IntConst 1)),                     Value (IntVal 0))
 
   ; ("LetInt",      Let(VarPat "x", IntConst 1, Var "x"),        Value (IntVal 1))
   ; ("LetBool",     Let(VarPat "x", BoolConst true, Var "x"),    Value (BoolVal true))
+
   ; ("Fun",         FunCall(
 			Fun(VarPat "x", Var "x"),
 			IntConst 5),                                               Value (IntVal 5))
