@@ -214,20 +214,29 @@ let rec evalExpr (e:moexpr) (env:moenv) : movalue =
 
   | Fun (i, e) -> FunVal(None, i, e, env)
 
-  | FunCall (x, y) ->
+  | FunCall (x, y) -> (
       match (evalExpr x env) with
-        | FunVal(name, pat, exp, lex) -> 
-          let lex2 = Env.combine_envs (patMatch pat (evalExpr y lex)) env in evalExpr exp lex2
+          FunVal(name, pat, exp, lex) -> 
+            let lex2 = Env.combine_envs (patMatch pat (evalExpr y lex)) env in evalExpr exp lex2
         | _ -> raise (DynamicTypeError "The expression given is not a FunVal")
+      )
 
-  | Match (e, (pat, exp)::tl) -> 
-      match evalExpr e env with
-        | pat -> exp
-        | _ -> evalExpr Match(e, tl)
+  | Match (e, liste) -> 
+      let (i, j) = matchCases (evalExpr e env) liste in evalExpr j env
+      (* match evalExpr e env with
+        | p when p = pat -> evalExpr exp env
+        | _ -> evalExpr (Match(e, tl)) env
+      )
+      (
+        match liste with
+          | [] -> raise (MatchFailure)
+          | (x,y)::tl -> 
+      ) *)
 
-  (* | Let (VarPat(i), e, Var(j)) -> (evalExpr e env)
+  | Let (pat, i, j) -> 
+      evalExpr j (Env.combine_envs (patMatch pat (evalExpr i env)) env)
 
-  | LetRec (s, VarPat(i), e, Var(j)) -> *) 
+  | LetRec (s, t, u) -> tieTheKnot s (evalExpr (FunCall (t, u)) env)
 
   | _ -> raise (MatchFailure)
 
