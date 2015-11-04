@@ -890,7 +890,7 @@ class Sum:
         self.current_sum = 0
 
     def process_row(self,row):
-        self.current_sum += row[self.sum_column]
+        self.current_sum += int(row[self.sum_column])
         return row
 
     def get_aggregate(self):
@@ -1048,9 +1048,9 @@ class ComposeQueries:
             return self.q2.process_row(initial)
 
     def get_aggregate(self):
-        q_agg = self.q2.get_aggregate()
-        print(q_agg)
-        return q_agg.update(self.q2.get_aggregate())
+        q_agg = self.q1.get_aggregate()
+        q_agg.update(self.q2.get_aggregate())
+        return q_agg
 
 #################### Test it! ####################
 
@@ -1138,7 +1138,11 @@ def buildQuery(in_headers, args):
     query = Identity(in_headers,args)
 
     while(len(args) > 0):
-        raise Exception("Implement buildQuery")
+        stop_flag = args.pop(0)
+        if not stop_flag.startswith('-'):
+            raise Exception("syntax error?")
+        next_q = queries[stop_flag[1:]](query.output_headers, args)
+        query = ComposeQueries(query, next_q)
 
     return query
 
