@@ -369,26 +369,33 @@ class Rename:
         self.new_header = args.pop(0)
         try: 
             (in_headers.index(self.old_header))
+            can0 = True
         except:
-            can = False
+            can0 = False
         try: 
             (in_headers.index(self.new_header))
+            can1 = False
         except:
-            can = True
+            can1 = True
+        can2 = True
         if (self.old_header == self.new_header):
-            can = False
+            can2 = False
 
-        if can:
-            input_headers = list(in_headers)
-            input_headers[input_headers.index(self.old_header)] = self.new_header
+        if can0 and can1 and can2:
+            changed = list(in_headers)
+            changed[changed.index(self.old_header)] = self.new_header
         else:
             raise Exception("nope")
 
-        self.output_headers = input_headers
+        self.output_headers = changed
         self.aggregate_headers = []
 
     def process_row(self,row):
-        return row
+        replacement = row.copy()
+        old_vals = replacement[self.old_header]
+        replacement.pop(self.old_header, None)
+        replacement[self.new_header] = old_vals
+        return replacement
 
     def get_aggregate(self):
         return {}
@@ -810,6 +817,8 @@ class MaxBy:
     """
     def __init__(self, in_headers, args):
         self.input_headers = in_headers
+        if (len(args) < 2):
+            raise Exception("not enough info")
         self.disp = args.pop(0)
         self.val = args.pop(0)
 
@@ -826,7 +835,7 @@ class MaxBy:
         return row
     
     def get_aggregate(self):
-        return (self.aggregate_headers[0] + ": " + self.max_disp)
+        return (("Max " + self.disp + " by " + self.val) + ": " + self.max_disp)
 
 #################### Test it! ####################    
 
@@ -872,17 +881,39 @@ class Sum:
     """
 
     def __init__(self, in_headers, args):
-        raise Exception("Implement Sum constructor")
+        self.input_headers = in_headers
+        if (len(args) < 1):
+            raise Exception("not enough info")
+        self.output_headers = self.input_headers
+        self.sum_column = args.pop(0)
+        self.aggregate_headers = [(self.sum_column + "Sum")]
+        self.current_sum = 0
 
     def process_row(self,row):
-        raise Exception("Implement Sum.process_row")
+        self.current_sum += int(row[self.sum_column])
+        return row
 
     def get_aggregate(self):
-        raise Exception("Implement Sum.get_aggregate")
+        return ((self.sum_column + "Sum") + ": " + str(self.current_sum))
 
 #################### Test it! ####################    
 
 # write your own test!
+def runSum():
+    f = open('player_career_short.csv')
+
+    # get the input headers
+    in_headers = f.readline().strip().split(',')
+
+    # build the query
+    args = ['turnover']
+    query = Sum(in_headers, args)
+
+    # should have consumed all args!
+    assert(args == [])  
+
+    # run it.
+    runQuery(f, query)
 
 class Mean:
     """
@@ -907,13 +938,41 @@ class Mean:
     """
     
     def __init__(self, in_headers, args):
-        raise Exception("Implement Mean constructor")
+        self.input_headers = in_headers
+        if (len(args) < 1):
+            raise Exception("not enough info")
+        self.output_headers = self.input_headers
+        self.sum_column = args.pop(0)
+        self.aggregate_headers = [(self.sum_column + "Mean")]
+        self.current_sum = 0
+        self.total_peeps = 0
 
     def process_row(self,row):
-        raise Exception("Implement Mean.process_row")
+        self.total_peeps += 1
+        self.current_sum += int(row[self.sum_column])
+        return row
 
     def get_aggregate(self):
-        raise Exception("Implement Mean.get_aggregate")
+        mean = self.current_sum/self.total_peeps
+        return ((self.sum_column + "Mean") + ": " + str(mean))
+
+#################### Test it! #################### 
+
+def runMean():
+    f = open('player_career_short.csv')
+
+    # get the input headers
+    in_headers = f.readline().strip().split(',')
+
+    # build the query
+    args = ['turnover']
+    query = Mean(in_headers, args)
+
+    # should have consumed all args!
+    assert(args == [])  
+
+    # run it.
+    runQuery(f, query)
 
 #################### STEP 4 : Composing Queries ####################
 # Each of our little queries is neat, but they become much more
@@ -971,7 +1030,7 @@ class ComposeQueries:
 
     """
     def __init__(self, q1, q2):
-        raise Exception("Implement ComposeQueries constructor")
+        
 
     def process_row(self,row):
         raise Exception("Implement ComposeQueries.process_row")
