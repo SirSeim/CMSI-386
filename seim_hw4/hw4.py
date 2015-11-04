@@ -687,10 +687,20 @@ class Update:
     """
     
     def __init__(self, in_headers, args):
-        raise Exception("Implement Update constructor")
+        self.input_headers = in_headers
+        self.column = args.pop(0)
+        self.expression = args.pop(0)
+
+        if not self.column in in_headers:
+            raise Exception("column designation not found in in_headers")
+
+        self.output_headers = in_headers
+        self.aggregate_headers = []
 
     def process_row(self,row):
-        raise Exception("Implement Update.process_row")
+        new_row = row.copy()
+        new_row[self.column] = eval(self.expression, row)
+        return new_row
 
     def get_aggregate(self):
         raise Exception("Implement Update.get_aggregate")
@@ -698,6 +708,24 @@ class Update:
 #################### Test it! ####################    
 
 # write your own test!
+
+def runUpdate():
+    f = open('player_career_short.csv')
+
+    # get the input headers
+    in_headers = f.readline().strip().split(',')
+
+    # build the query
+    args = ['firstname','firstname.lower()']
+    query = Update(in_headers, args)
+
+    # should have consumed all args!
+    assert(args == [])  
+
+    # run it.
+    runQuery(f, query)
+
+# Doing that copy paste test style
 
 class Add:
     """ 
