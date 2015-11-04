@@ -366,23 +366,23 @@ class Rename:
     
     def __init__(self, in_headers, args):
         self.input_headers = in_headers
-        args0 = args.pop(0)
-        args1 = args.pop(0)
+        self.args0 = args.pop(0)
+        self.args1 = args.pop(0)
         try:
-            in_headers.index(args0)
+            in_headers.index(self.args0)
             valid_old = True
         except:
             valid_old = False
 
         try:
-            in_headers.index(args1)
+            in_headers.index(self.args1)
             valid_new = False
         except:
             valid_new = True
 
         if (valid_old and valid_new):
             new_headers = list(in_headers)
-            new_headers[in_headers.index(args0)] = args1
+            new_headers[in_headers.index(self.args0)] = self.args1
         else:
             raise Exception("Invalid Rename")
 
@@ -390,8 +390,11 @@ class Rename:
         self.aggregate_headers = []
 
     def process_row(self,row):
-        # Do nothing; return the row unchanged.
-        return row
+        new_row = row.copy()
+        data = new_row[self.args0]
+        new_row.pop(self.args0, None)
+        new_row[self.args1] = data
+        return new_row
 
     def get_aggregate(self):
         # No aggregation, return an empty row.
@@ -846,7 +849,7 @@ class MaxBy:
         return row
     
     def get_aggregate(self):
-        return {self.aggregate_headers[0]: self.max_display}
+        return {('Max '+self.display_column+' By '+self.value_column): self.max_display}
 
 #################### Test it! ####################    
 
@@ -904,17 +907,14 @@ class Sum:
         self.aggregate_headers = [(self.column+' Sum')]
 
         #workspace for aggregation
-        self.sum = None
+        self.sum = 0
 
     def process_row(self,row):
-        if (self.sum == None):
-            self.sum = int(row[self.column])
-        else:
-            self.sum += int(row[self.column])
+        self.sum += int(row[self.column])
         return row
 
     def get_aggregate(self):
-        return {self.aggregate_headers[0]: self.sum}
+        return {(self.column+' Sum'): self.sum}
 
 #################### Test it! ####################    
 
@@ -961,13 +961,46 @@ class Mean:
     """
     
     def __init__(self, in_headers, args):
-        raise Exception("Implement Mean constructor")
+        self.input_headers = in_headers
+        self.column = args.pop(0)
+        if not self.column in in_headers:
+            raise Exception('column does not exist in in_headers')
+            
+        self.output_headers = list(in_headers)
+        self.aggregate_headers = [(self.column+' Mean')]
+
+        #workspace for aggregation
+        self.sum = 0
+        self.numbers = 0
 
     def process_row(self,row):
-        raise Exception("Implement Mean.process_row")
+        self.sum += int(row[self.column])
+        self.numbers += 1
+        return row
 
     def get_aggregate(self):
-        raise Exception("Implement Mean.get_aggregate")
+        return {(self.column+' Mean'): (self.sum/self.numbers)}
+
+####################################################
+# Matt!! Why don't you remind me about making a test
+
+def runMean():
+    f = open('player_career_short.csv')
+
+    # get the input headers
+    in_headers = f.readline().strip().split(',')
+
+    # build the query
+    args = ['turnover']
+    query = Mean(in_headers, args)
+
+    # should have consumed all args!
+    assert(args == [])  
+
+    # run it.
+    runQuery(f, query)
+
+# Doing that copy paste test style
 
 #################### STEP 4 : Composing Queries ####################
 # Each of our little queries is neat, but they become much more
@@ -1025,13 +1058,27 @@ class ComposeQueries:
 
     """
     def __init__(self, q1, q2):
-        raise Exception("Implement ComposeQueries constructor")
+        if q1.output_headers != q2.input_headers:
+            raise Exception('output_headers of first query do not match input_headers of second query')
+
+        self.input_headers = q1.input_headers
+        self.output_headers = q2.output_headers
+        if (set(q1.aggregate_headers) & set(q2.aggregate_headers)):
+            raise Exception('aggregate_headers not unique between queries')
+        self.aggregate_headers = list(q1.aggregate_headers)
+        self.aggregate_headers.append(q2.aggregate_headers)
+        self.q1 = q1
+        self.q2 = q2
 
     def process_row(self,row):
-        raise Exception("Implement ComposeQueries.process_row")
+        first_output = self.q1.process_row(row)
+        if (first_output):
+            return self.q2.process_row(first_output)
 
     def get_aggregate(self):
-        raise Exception("Implement ComposeQueries.get_aggregate")
+        agg = self.q1.get_aggregate()
+        agg.update(self.q2.get_aggregate())
+        return agg
 
 #################### Test it! ####################
 
