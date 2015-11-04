@@ -2,7 +2,7 @@
 #
 # UID: 965 155 965
 #
-# Others With Whom I Discussed Things: Rodrigo Seim
+# Others With Whom I Discussed Things: Rodrigo Seim, Adrian Lu, Nick Soffa
 #
 # Other Resources I Consulted: diveintopython3.net
 #
