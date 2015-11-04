@@ -277,9 +277,9 @@ def runQuery(f, query):
     
     for ln in f:
         dic = rowStringToDict(query.input_headers, ln)
-        output = rowDictToString(query.output_headers, query.process_row(dic))
+        output = query.process_row(dic)
         if (output):
-            print(output)
+            print(rowDictToString(query.output_headers, output))
 
     # did the query do any aggregation?
     if len(query.aggregate_headers) > 0:
@@ -625,17 +625,40 @@ class Filter:
     """
 
     def __init__(self, in_headers, args):
-        raise Exception("Implement Filter constructor")
+        self.input_headers = in_headers
+        self.expression = args.pop(0)
+        self.output_headers = in_headers
+        self.aggregate_headers = []
 
     def process_row(self,row):
-        raise Exception("Implement Filter.process_row")
+        if (eval(self.expression, row)):
+            return row
 
     def get_aggregate(self):
-        raise Exception("Implement Filter.get_aggregate")
+        # No aggregation, return an empty row.
+        return {}
 
 #################### Test it! ####################    
 
 # write your own test!
+
+def runFilter():
+    f = open('player_career_short.csv')
+
+    # get the input headers
+    in_headers = f.readline().strip().split(',')
+
+    # build the query
+    args = ['int(gp) > 500']
+    query = Filter(in_headers, args)
+
+    # should have consumed all args!
+    assert(args == [])  
+
+    # run it.
+    runQuery(f, query)
+
+# Doing that copy paste test style
 
 class Update:
     """ 
