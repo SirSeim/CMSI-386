@@ -277,7 +277,7 @@ def runQuery(f, query):
     
     for ln in f:
         dic = rowStringToDict(query.input_headers, ln)
-        output = query.process_row(ln)
+        output = rowDictToString(query.output_headers, query.process_row(dic))
         if (output):
             print(output)
 
@@ -450,31 +450,29 @@ class Swap:
     
     def __init__(self, in_headers, args):
         self.input_headers = in_headers
-        args0 = args.pop(0)
-        args1 = args.pop(0)
+        self.swap0 = args.pop(0)
+        self.swap1 = args.pop(0)
 
         try:
-            in_headers.index(args0)
+            in_headers.index(self.swap0)
             valid_first = True
         except:
             valid_first = False
 
         try:
-            in_headers.index(args1)
+            in_headers.index(self.swap1)
             valid_second = True
         except:
             valid_second = False
 
         if (valid_first and valid_second):
             new_headers = list(in_headers)
-            self.swap_index0 = new_headers.index(args0)
-            self.swap_index1 = new_headers.index(args1)
-            # print(self.swap_index0)
-            # print(self.swap_index1)
+            swap_index0 = new_headers.index(self.swap0)
+            swap_index1 = new_headers.index(self.swap1)
             
-            swap_header = new_headers[self.swap_index0]
-            new_headers[self.swap_index0] = new_headers[self.swap_index1]
-            new_headers[self.swap_index1] = swap_header
+            swap_header = new_headers[swap_index0]
+            new_headers[swap_index0] = new_headers[swap_index1]
+            new_headers[swap_index1] = swap_header
         else:
             raise Exception("Invalid headers")
 
@@ -482,13 +480,8 @@ class Swap:
         self.aggregate_headers = []
 
     def process_row(self,row):
-        new_row = row.split(',')
-        swap_column = new_row[self.swap_index0]
-        # print(new_row[self.swap_index0])
-        new_row[self.swap_index0] = new_row[self.swap_index1]
-        new_row[self.swap_index1] = swap_column
-        # print(new_row[self.swap_index0])
-        return ','.join(new_row)
+        new_row = row.copy()
+        return new_row
 
     def get_aggregate(self):
         # No aggregation, return an empty row.
