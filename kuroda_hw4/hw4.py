@@ -689,7 +689,9 @@ class Update:
         self.aggregate_headers = []
 
     def process_row(self,row):
-        
+        updated = row.copy()
+        updated[self.colonne] = eval(self.exp, row)
+        return updated
 
     def get_aggregate(self):
         return []
@@ -697,6 +699,21 @@ class Update:
 #################### Test it! ####################    
 
 # write your own test!
+def runUpdate():
+    f = open('player_career_short.csv')
+
+    # get the input headers
+    in_headers = f.readline().strip().split(',')
+
+    # build the query
+    args = ['firstname', 'firstname.lower()']
+    query = Update(in_headers, args)
+
+    # should have consumed all args!
+    assert(args == [])  
+
+    # run it.
+    runQuery(f, query)
 
 class Add:
     """ 
@@ -723,17 +740,44 @@ class Add:
     """
 
     def __init__(self, in_headers, args):
-        raise Exception("Implement Add constructor")
+        self.input_headers = in_headers
+        if (len(args) < 2):
+            raise Exception("not enough info")
+        self.colonne = args.pop(0)
+        if self.colonne in in_headers:
+            raise Exception("proposed column already exists")
+        self.exp = args.pop(0)
+
+        self.output_headers = list(in_headers)
+        self.output_headers.append(self.colonne)
+        self.aggregate_headers = []
                
     def process_row(self,row):
-        raise Exception("Implement Add.process_row")
+        added = row.copy()
+        added[self.colonne] = str(eval(self.exp, row))
+        return added
 
     def get_aggregate(self):
-        raise Exception("Implement Add.get_aggregate")
+        return []
 
 #################### Test it! ####################    
 
 # write your own test!
+def runAdd():
+    f = open('player_career_short.csv')
+
+    # get the input headers
+    in_headers = f.readline().strip().split(',')
+
+    # build the query
+    args = ['ppg', 'int(pts)/int(gp)']
+    query = Add(in_headers, args)
+
+    # should have consumed all args!
+    assert(args == [])  
+
+    # run it.
+    runQuery(f, query)
 
 class MaxBy:
     """
@@ -765,17 +809,43 @@ class MaxBy:
     ABDULKA01 
     """
     def __init__(self, in_headers, args):
-        raise Exception("Implement MaxBy constructor")
+        self.input_headers = in_headers
+        self.disp = args.pop(0)
+        self.val = args.pop(0)
+
+        self.output_headers = self.input_headers
+        self.aggregate_headers = [("Max " + self.disp + " by " + self.val)]
+
+        self.max_disp = None
+        self.max_val = None
 
     def process_row(self,row):
-        raise Exception("Implement MaxBy.process_row")
+        if (self.max_val == None or int(row[self.val]) > int(self.max_val)):
+            self.max_disp = row[self.disp]
+            self.max_val = row[self.val]
+        return row
     
     def get_aggregate(self):
-        raise Exception("Implement MaxBy.get_aggregate")
+        return (self.aggregate_headers[0] + ": " + self.max_disp)
 
 #################### Test it! ####################    
 
 # write your own test!
+def runMaxBy():
+    f = open('player_career_short.csv')
+
+    # get the input headers
+    in_headers = f.readline().strip().split(',')
+
+    # build the query
+    args = ['id', 'minutes']
+    query = MaxBy(in_headers, args)
+
+    # should have consumed all args!
+    assert(args == [])  
+
+    # run it.
+    runQuery(f, query)
 
 class Sum:
     """
