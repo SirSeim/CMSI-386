@@ -279,7 +279,7 @@ def runQuery(f, query):
         dic = rowStringToDict(query.input_headers, ln)
         output = query.process_row(ln)
         if (output):
-            print(rowDictToString(query.input_headers, dic))
+            print(output)
 
     # did the query do any aggregation?
     if len(query.aggregate_headers) > 0:
@@ -451,7 +451,7 @@ class Swap:
     def __init__(self, in_headers, args):
         self.input_headers = in_headers
         args0 = args.pop(0)
-        args1 = args.pop(1)
+        args1 = args.pop(0)
 
         try:
             in_headers.index(args0)
@@ -467,9 +467,14 @@ class Swap:
 
         if (valid_first and valid_second):
             new_headers = list(in_headers)
-            swap_header = new_headers[new_headers.index(args0)]
-            new_headers[new_headers.index(args0)] = new_headers[new_headers.index(args1)]
-            new_headers[new_headers.index(args1)] = swap_header
+            self.swap_index0 = new_headers.index(args0)
+            self.swap_index1 = new_headers.index(args1)
+            # print(self.swap_index0)
+            # print(self.swap_index1)
+            
+            swap_header = new_headers[self.swap_index0]
+            new_headers[self.swap_index0] = new_headers[self.swap_index1]
+            new_headers[self.swap_index1] = swap_header
         else:
             raise Exception("Invalid headers")
 
@@ -477,10 +482,17 @@ class Swap:
         self.aggregate_headers = []
 
     def process_row(self,row):
-        raise Exception("Implement Swap.process_row")
+        new_row = row.split(',')
+        swap_column = new_row[self.swap_index0]
+        # print(new_row[self.swap_index0])
+        new_row[self.swap_index0] = new_row[self.swap_index1]
+        new_row[self.swap_index1] = swap_column
+        # print(new_row[self.swap_index0])
+        return ','.join(new_row)
 
     def get_aggregate(self):
-        raise Exception("Implement Swap.get_aggregate")
+        # No aggregation, return an empty row.
+        return {}
 
 #################### Test it! ####################
 
