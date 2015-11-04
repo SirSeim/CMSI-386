@@ -895,17 +895,48 @@ class Sum:
     """
 
     def __init__(self, in_headers, args):
-        raise Exception("Implement Sum constructor")
+        self.input_headers = in_headers
+        self.column = args.pop(0)
+        if not self.column in in_headers:
+            raise Exception('column does not exist in in_headers')
+            
+        self.output_headers = list(in_headers)
+        self.aggregate_headers = [(self.column+' Sum')]
+
+        #workspace for aggregation
+        self.sum = None
 
     def process_row(self,row):
-        raise Exception("Implement Sum.process_row")
+        if (self.sum == None):
+            self.sum = int(row[self.column])
+        else:
+            self.sum += int(row[self.column])
+        return row
 
     def get_aggregate(self):
-        raise Exception("Implement Sum.get_aggregate")
+        return {self.aggregate_headers[0]: self.sum}
 
 #################### Test it! ####################    
 
 # write your own test!
+
+def runSum():
+    f = open('player_career_short.csv')
+
+    # get the input headers
+    in_headers = f.readline().strip().split(',')
+
+    # build the query
+    args = ['turnover']
+    query = Sum(in_headers, args)
+
+    # should have consumed all args!
+    assert(args == [])  
+
+    # run it.
+    runQuery(f, query)
+
+# Doing that copy paste test style
 
 class Mean:
     """
