@@ -550,7 +550,7 @@ class Select:
         return row
 
     def get_aggregate(self):
-        return []
+        return {}
 
 #################### Test it! ####################
 
@@ -634,7 +634,7 @@ class Filter:
             return row
 
     def get_aggregate(self):
-        return []
+        return {}
 
 #################### Test it! ####################    
 
@@ -701,7 +701,7 @@ class Update:
         return updated
 
     def get_aggregate(self):
-        return []
+        return {}
 
 #################### Test it! ####################    
 
@@ -765,7 +765,7 @@ class Add:
         return added
 
     def get_aggregate(self):
-        return []
+        return {}
 
 #################### Test it! ####################    
 
@@ -829,13 +829,13 @@ class MaxBy:
         self.max_val = None
 
     def process_row(self,row):
-        if (self.max_val == None or int(row[self.val]) > int(self.max_val)):
+        if (self.max_val == None or row[self.val] > self.max_val):
             self.max_disp = row[self.disp]
             self.max_val = row[self.val]
         return row
     
     def get_aggregate(self):
-        return (("Max " + self.disp + " by " + self.val) + ": " + self.max_disp)
+        return {("Max " + self.disp + " by " + self.val): self.max_disp}
 
 #################### Test it! ####################    
 
@@ -890,11 +890,11 @@ class Sum:
         self.current_sum = 0
 
     def process_row(self,row):
-        self.current_sum += int(row[self.sum_column])
+        self.current_sum += row[self.sum_column]
         return row
 
     def get_aggregate(self):
-        return ((self.sum_column + "Sum") + ": " + str(self.current_sum))
+        return {(self.sum_column + "Sum"): str(self.current_sum)}
 
 #################### Test it! ####################    
 
@@ -954,7 +954,7 @@ class Mean:
 
     def get_aggregate(self):
         mean = self.current_sum/self.total_peeps
-        return ((self.sum_column + "Mean") + ": " + str(mean))
+        return {(self.sum_column + "Mean"): str(mean)}
 
 #################### Test it! #################### 
 
@@ -1030,13 +1030,27 @@ class ComposeQueries:
 
     """
     def __init__(self, q1, q2):
-        
+        self.input_headers = q1.input_headers
+        self.output_headers = q2.output_headers
+        self.q1 = q1
+        self.q2 = q2
+        q1_agg = q1.aggregate_headers
+        q2_agg = q2.aggregate_headers
+        if (q1.output_headers != q2.input_headers):
+            raise Exception("output of q1 ≠ input of q2")
+        if (set(q1_agg) and set(q2_agg)):
+            raise Exception("aggregates are the same")
+        self.aggregate_headers = list(q1_agg) + list(q2_agg)
 
     def process_row(self,row):
-        raise Exception("Implement ComposeQueries.process_row")
+        initial = self.q1.process_row(row)
+        if initial:
+            return self.q2.process_row(initial)
 
     def get_aggregate(self):
-        raise Exception("Implement ComposeQueries.get_aggregate")
+        q_agg = self.q2.get_aggregate()
+        print(q_agg)
+        return q_agg.update(self.q2.get_aggregate())
 
 #################### Test it! ####################
 
