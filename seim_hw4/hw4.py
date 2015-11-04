@@ -161,7 +161,7 @@ class Identity:
     
     def __init__(self, in_headers, args):
         self.input_headers = in_headers
-        self.output_headers = in_headers
+        self.output_headers = list(in_headers)
         self.aggregate_headers = []
 
     def process_row(self,row):
@@ -196,7 +196,7 @@ class Count:
     
     def __init__(self, in_headers, args):
         self.input_headers = in_headers
-        self.output_headers = in_headers
+        self.output_headers = list(in_headers)
         self.aggregate_headers = ['Count']
 
         # state for the aggregation
@@ -627,7 +627,7 @@ class Filter:
     def __init__(self, in_headers, args):
         self.input_headers = in_headers
         self.expression = args.pop(0)
-        self.output_headers = in_headers
+        self.output_headers = list(in_headers)
         self.aggregate_headers = []
 
     def process_row(self,row):
@@ -694,12 +694,12 @@ class Update:
         if not self.column in in_headers:
             raise Exception("column designation not found in in_headers")
 
-        self.output_headers = in_headers
+        self.output_headers = list(in_headers)
         self.aggregate_headers = []
 
     def process_row(self,row):
         new_row = row.copy()
-        new_row[self.column] = eval(self.expression, row)
+        new_row[self.column] = str(eval(self.expression, row))
         return new_row
 
     def get_aggregate(self):
@@ -823,17 +823,52 @@ class MaxBy:
     ABDULKA01 
     """
     def __init__(self, in_headers, args):
-        raise Exception("Implement MaxBy constructor")
+        self.input_headers = in_headers
+        self.display_column = args.pop(0)
+        if not self.display_column in in_headers:
+            raise Exception('display_column does not exist in in_headers')
+
+        self.value_column = args.pop(0)
+        if not self.value_column in in_headers:
+            raise Exception('display_column does not exist in in_headers')
+            
+        self.output_headers = list(in_headers)
+        self.aggregate_headers = [('Max '+self.display_column+' By '+self.value_column)]
+
+        #workspace for aggregation
+        self.max_value = None
+        self.max_display = None
 
     def process_row(self,row):
-        raise Exception("Implement MaxBy.process_row")
+        if (self.max_value == None or row[self.value_column] > self.max_value):
+            self.max_value = row[self.value_column]
+            self.max_display = row[self.display_column]
+        return row
     
     def get_aggregate(self):
-        raise Exception("Implement MaxBy.get_aggregate")
+        return {self.aggregate_headers[0]: self.max_display}
 
 #################### Test it! ####################    
 
 # write your own test!
+
+def runMaxBy():
+    f = open('player_career_short.csv')
+
+    # get the input headers
+    in_headers = f.readline().strip().split(',')
+
+    # build the query
+    args = ['id','minutes']
+    query = MaxBy(in_headers, args)
+
+    # should have consumed all args!
+    assert(args == [])  
+
+    # run it.
+    runQuery(f, query)
+
+# Doing that copy paste test style
 
 class Sum:
     """
