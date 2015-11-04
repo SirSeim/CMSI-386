@@ -480,8 +480,8 @@ class Swap:
         self.aggregate_headers = []
 
     def process_row(self,row):
-        new_row = row.copy()
-        return new_row
+        # Columns switched by change of headers in runQuery
+        return row
 
     def get_aggregate(self):
         # No aggregation, return an empty row.
@@ -535,13 +535,26 @@ class Select:
     """
 
     def __init__(self, in_headers, args):
-        raise Exception("Implement Select constructor")
+        self.input_headers = in_headers
+        new_headers = []
+        while (args and not (args[0].startswith('-'))):
+            try:
+                new_head = args.pop(0)
+                if (in_headers.index(new_head) >= 0):
+                    new_headers.append(new_head)
+            except:
+                raise Exception("new_head not found in in_headers")
+                
+        self.output_headers = new_headers
+        self.aggregate_headers = []
 
     def process_row(self, row):
-        raise Exception("Implement Select.process_row")
+        # Columns selected by change of headers in runQuery
+        return row
 
     def get_aggregate(self):
-        raise Exception("Implement Select.get_aggregate")
+        # No aggregation, return an empty row.
+        return {}
 
 #################### Test it! ####################
 
