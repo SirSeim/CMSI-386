@@ -910,7 +910,7 @@ class Sum:
         self.sum = 0
 
     def process_row(self,row):
-        self.sum += int(row[self.column])
+        self.sum += float(row[self.column])
         return row
 
     def get_aggregate(self):
@@ -974,7 +974,7 @@ class Mean:
         self.numbers = 0
 
     def process_row(self,row):
-        self.sum += int(row[self.column])
+        self.sum += float(row[self.column])
         self.numbers += 1
         return row
 
@@ -1063,10 +1063,11 @@ class ComposeQueries:
 
         self.input_headers = q1.input_headers
         self.output_headers = q2.output_headers
-        if (set(q1.aggregate_headers) & set(q2.aggregate_headers)):
+        print(q1.aggregate_headers)
+        print(q2.aggregate_headers)
+        if (set(q1.aggregate_headers).intersection(q2.aggregate_headers)):
             raise Exception('aggregate_headers not unique between queries')
-        self.aggregate_headers = list(q1.aggregate_headers)
-        self.aggregate_headers.append(q2.aggregate_headers)
+        self.aggregate_headers = list(q1.aggregate_headers) + list(q2.aggregate_headers)
         self.q1 = q1
         self.q2 = q2
 
@@ -1166,8 +1167,11 @@ def buildQuery(in_headers, args):
     query = Identity(in_headers,args)
 
     while(len(args) > 0):
-        raise Exception("Implement buildQuery")
-
+        flag = args.pop(0)
+        if not flag.startswith('-'):
+            raise Exception('incorrect args')
+        new_query = queries[flag[1:]](query.output_headers, args)
+        query = ComposeQueries(query,new_query)
     return query
 
 #################### STEP 6: Testing ####################
