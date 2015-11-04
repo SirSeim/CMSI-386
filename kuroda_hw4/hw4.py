@@ -1,10 +1,10 @@
-# Name:
+# Name: Joshua Kuroda
 #
-# UID:
+# UID: 965 155 965
 #
-# Others With Whom I Discussed Things:
+# Others With Whom I Discussed Things: Rodrigo Seim
 #
-# Other Resources I Consulted:
+# Other Resources I Consulted: diveintopython3.net
 #
 #
 
@@ -75,11 +75,15 @@ def rowStringToDict(headers, ln):
 
     Tip: use the split method on strings. See help(str.split)
     """
-    raise "Implement rowStringToDict!"
+    line = ln.split(',')
+    dictionnaire = {};
+    for tete, ligne in zip(headers, line):
+        dictionnaire[tete] = ligne
+    return dictionnaire
 
 assert(rowStringToDict(['Name','Age','Hair'], 'Steve,25,Blonde') == {'Name' : 'Steve', 'Age' : '25', 'Hair' : 'Blonde'})
 
-def rowDictToString(headers, dict):
+def rowDictToString(headers, dict1):
     """
     Converts a dictionary representation of a row back to string in CSV format.
     The headers argument determines the order of the values.
@@ -94,7 +98,12 @@ def rowDictToString(headers, dict):
 
     Tip: use the join method on strings. See help(str.join)
     """
-    raise "Implement rowDictToString!"
+    row = []
+    for thing in headers:
+        row.append(dict1[thing])
+    ficelle = ','.join(row)
+
+    return ficelle
 
 assert(rowDictToString(['Name','Age','Hair'], {'Name' : 'Steve', 'Age' : '25', 'Hair' : 'Blonde'}) == 'Steve,25,Blonde')
 
@@ -254,7 +263,7 @@ def runQuery(f, query):
     #   try: ' '.join(['A','B','C'])
     #   see: help(str.join)
 
-    raise Exception("runQuery needs to print the query's output headers")
+    print (','.join(query.output_headers))
 
     # process each input line
     # Pseudocode:
@@ -264,12 +273,16 @@ def runQuery(f, query):
     #   if query returns an output row, print it in CSV-format.
     #   if the query returns None, don't print anything.
     
-    raise Exception("runQuery needs to process each line")
+    for line in f:
+        dicto = rowStringToDict(query.input_headers, line)
+        output = query.process_row(line)
+        if (output != None):
+            print(rowDictToString(query.input_headers, dicto))
 
     # did the query do any aggregation?
     if len(query.aggregate_headers) > 0:
         # yes. print the aggregate table.
-        raise Exception("runQuery needs to output the aggregate table")
+        print (query.get_aggregate())
 
 
 #################### Test it! ####################
@@ -349,13 +362,24 @@ class Rename:
     """
     
     def __init__(self, in_headers, args):
-        raise Exception("Implement Rename constructor")
+        self.input_headers = in_headers
+        self.old_header = args[0]
+        self.new_header = args[1]
+        if (in_headers.index(self.old_header) >= 0):
+            raise Exception("header cannot be replaced; it does not exist")
+        if (not(in_headers.index(new_header) >= 0)):
+            raise Exception("new header already exists")
+        if (old_header == new_header):
+            raise Exception("new header already exists")
+        
+        input_headers = list(in_headers)
+        input_headers[input_headers.index(old_header)] = new_header
 
     def process_row(self,row):
-        raise Exception("Implement Rename.process_row")
+        return row
 
     def get_aggregate(self):
-        raise Exception("Implement Rename.get_aggregate")
+        return {}
 
 
 #################### Test it! ####################
