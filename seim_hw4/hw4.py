@@ -703,7 +703,8 @@ class Update:
         return new_row
 
     def get_aggregate(self):
-        raise Exception("Implement Update.get_aggregate")
+        # No aggregation, return an empty row.
+        return {}
 
 #################### Test it! ####################    
 
@@ -752,17 +753,45 @@ class Add:
     """
 
     def __init__(self, in_headers, args):
-        raise Exception("Implement Add constructor")
+        self.input_headers = in_headers
+        self.new_column = args.pop(0)
+        if self.new_column in in_headers:
+            raise Exception('new column already exists in in_headers')
+        self.expression = args.pop(0)
+        self.output_headers = list(in_headers)
+        self.output_headers.append(self.new_column)
+        self.aggregate_headers = []
                
     def process_row(self,row):
-        raise Exception("Implement Add.process_row")
+        new_row = row.copy()
+        new_row[self.new_column] = str(eval(self.expression, row))
+        return new_row
 
     def get_aggregate(self):
-        raise Exception("Implement Add.get_aggregate")
+        # No aggregation, return an empty row.
+        return {}
 
 #################### Test it! ####################    
 
 # write your own test!
+
+def runAdd():
+    f = open('player_career_short.csv')
+
+    # get the input headers
+    in_headers = f.readline().strip().split(',')
+
+    # build the query
+    args = ['ppg','int(pts)/int(gp)']
+    query = Add(in_headers, args)
+
+    # should have consumed all args!
+    assert(args == [])  
+
+    # run it.
+    runQuery(f, query)
+
+# Doing that copy paste test style
 
 class MaxBy:
     """
