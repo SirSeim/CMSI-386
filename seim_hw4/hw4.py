@@ -6,7 +6,8 @@
 # Joshua Kuroda
 #
 # Other Resources I Consulted:
-#
+# http://www.tutorialspoint.com/python/
+# https://docs.python.org/2/tutorial/
 #
 
 import sys
@@ -284,7 +285,6 @@ def runQuery(f, query):
     # did the query do any aggregation?
     if len(query.aggregate_headers) > 0:
         # yes. print the aggregate table.
-        # raise Exception("runQuery needs to output the aggregate table")
         print(query.get_aggregate())
 
 
@@ -1063,8 +1063,6 @@ class ComposeQueries:
 
         self.input_headers = q1.input_headers
         self.output_headers = q2.output_headers
-        print(q1.aggregate_headers)
-        print(q2.aggregate_headers)
         if (set(q1.aggregate_headers).intersection(q2.aggregate_headers)):
             raise Exception('aggregate_headers not unique between queries')
         self.aggregate_headers = list(q1.aggregate_headers) + list(q2.aggregate_headers)
