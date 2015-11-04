@@ -275,9 +275,9 @@ def runQuery(f, query):
     
     for line in f:
         dicto = rowStringToDict(query.input_headers, line)
-        output = query.process_row(line)
+        output = query.process_row(dicto)
         if (output != None):
-            print(rowDictToString(query.input_headers, dicto))
+            print(rowDictToString(query.output_headers, output))
 
     # did the query do any aggregation?
     if len(query.aggregate_headers) > 0:
@@ -363,17 +363,29 @@ class Rename:
     
     def __init__(self, in_headers, args):
         self.input_headers = in_headers
-        self.old_header = args[0]
-        self.new_header = args[1]
-        if (in_headers.index(self.old_header) >= 0):
-            raise Exception("header cannot be replaced; it does not exist")
-        if (not(in_headers.index(new_header) >= 0)):
-            raise Exception("new header already exists")
-        if (old_header == new_header):
-            raise Exception("new header already exists")
-        
-        input_headers = list(in_headers)
-        input_headers[input_headers.index(old_header)] = new_header
+        if (len(args) < 2):
+            raise Exception("not enough info")
+        self.old_header = args.pop(0)
+        self.new_header = args.pop(0)
+        try: 
+            (in_headers.index(self.old_header))
+        except:
+            can = False
+        try: 
+            (in_headers.index(self.new_header))
+        except:
+            can = True
+        if (self.old_header == self.new_header):
+            can = False
+
+        if can:
+            input_headers = list(in_headers)
+            input_headers[input_headers.index(self.old_header)] = self.new_header
+        else:
+            raise Exception("nope")
+
+        self.output_headers = input_headers
+        self.aggregate_headers = []
 
     def process_row(self,row):
         return row
@@ -433,13 +445,37 @@ class Swap:
     """
     
     def __init__(self, in_headers, args):
-        raise Exception("Implement Swap constructor")
+        self.input_headers = list(in_headers)
+        if (len(args) < 2):
+            raise Exception("not enough info")
+
+        swapping0 = args.pop(0)
+        swapping1 = args.pop(0)
+        can = True
+
+        try: 
+            swap0place = in_headers.index(swapping0)
+        except:
+            can = False
+        try: 
+            swap1place = in_headers.index(swapping1)
+        except:
+            can = False
+
+        replaced_headers = list(in_headers)
+        if can:
+            replaced_headers[swap0place] = swapping1
+            replaced_headers[swap1place] = swapping0
+
+        self.output_headers = replaced_headers
+        self.aggregate_headers = []
+
 
     def process_row(self,row):
-        raise Exception("Implement Swap.process_row")
+        return row
 
     def get_aggregate(self):
-        raise Exception("Implement Swap.get_aggregate")
+        return {}
 
 #################### Test it! ####################
 
@@ -489,13 +525,25 @@ class Select:
     """
 
     def __init__(self, in_headers, args):
-        raise Exception("Implement Select constructor")
+        new_headers = []
+        self.input_headers = in_headers
+        if (len(args) < 2):
+            raise Exception("not enough info")
+        while (len(args) != 0 and not args[0].startswith('-')):
+            try:
+                potential = args.pop(0)
+                if (in_headers.index(potential) >= 0):
+                    new_headers.append(potential)
+            except:
+                raise Exception("header not found within existing headers")
+        self.output_headers = new_headers
+        self.aggregate_headers = []
 
     def process_row(self, row):
-        raise Exception("Implement Select.process_row")
+        return row
 
     def get_aggregate(self):
-        raise Exception("Implement Select.get_aggregate")
+        return []
 
 #################### Test it! ####################
 
@@ -566,17 +614,40 @@ class Filter:
     """
 
     def __init__(self, in_headers, args):
-        raise Exception("Implement Filter constructor")
+        self.input_headers = in_headers
+        if (len(args) < 1):
+            raise Exception("not enough info")
+        self.exp = args.pop(0)
+
+        self.output_headers = self.input_headers
+        self.aggregate_headers = []
 
     def process_row(self,row):
-        raise Exception("Implement Filter.process_row")
+        if eval(self.exp, row):
+            return row
 
     def get_aggregate(self):
-        raise Exception("Implement Filter.get_aggregate")
+        return []
 
 #################### Test it! ####################    
 
 # write your own test!
+
+def runFilter():
+    f = open('player_career_short.csv')
+
+    # get the input headers
+    in_headers = f.readline().strip().split(',')
+
+    # build the query
+    args = ['int(gp) > 500']
+    query = Filter(in_headers, args)
+
+    # should have consumed all args!
+    assert(args == [])  
+
+    # run it.
+    runQuery(f, query)
 
 class Update:
     """ 
@@ -605,13 +676,23 @@ class Update:
     """
     
     def __init__(self, in_headers, args):
-        raise Exception("Implement Update constructor")
+        self.input_headers = in_headers
+        if (len(args) < 2):
+            raise Exception("not enough info")
+        self.colonne = args.pop(0)
+        self.exp = args.pop(0)
+
+        if self.colonne not in self.input_headers:
+            raise Exception("desired column doesn't exist")
+
+        self.output_headers = self.input_headers
+        self.aggregate_headers = []
 
     def process_row(self,row):
-        raise Exception("Implement Update.process_row")
+        
 
     def get_aggregate(self):
-        raise Exception("Implement Update.get_aggregate")
+        return []
 
 #################### Test it! ####################    
 
