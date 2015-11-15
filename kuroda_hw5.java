@@ -231,17 +231,36 @@ import java.util.*;
      
 // a type for arithmetic expressions
 interface AExp {
-    // Double eval(); 	                       // Problem 1
+    Double eval();
+    
     // List<AInstr> compile(); 	               // Problem 3
 }
 
 class Num implements AExp {
     protected Double val;
+
+    public Double eval() {
+        return this.val;
+    }
+
+    public Num (Double v) {
+        this.val = v;
+    }
 }
 
 class BinOp implements AExp {
     protected AExp left, right;
     protected Op op;
+
+    public Double eval() {
+        return op.calculate(this.left.eval(), this.right.eval());
+    }
+
+    public BinOp (AExp gauche, Op oper, AExp droit) {
+        this.left = gauche;
+        this.op = oper;
+        this.right = droit;
+    }
 }
 
 // a representation of four arithmetic operators
