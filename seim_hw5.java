@@ -351,6 +351,12 @@ class CalcTest {
     		      new Num(4.0));
     	System.out.println("aexp evaluates to " + aexp.eval()); // aexp evaluates to 12.0
 
+        AExp aexp2 =
+            new BinOp(new BinOp(new Num(9.0), Op.MINUS, new Num(5.0)),
+                  Op.DIVIDE,
+                  new Num(2.0));
+        System.out.println("aexp2 evaluates to " + aexp2.eval()); // aexp evaluates to 2.0
+
         // a test for Problem 2
     	List<AInstr> is = new LinkedList<AInstr>();
     	is.add(new Push(1.0));
@@ -372,6 +378,7 @@ class CalcTest {
 
         // a test for Problem 3
         System.out.println("aexp converts to " + aexp.compile());
+        System.out.println("aexp2 converts to " + aexp2.compile());
 
     }
 }
