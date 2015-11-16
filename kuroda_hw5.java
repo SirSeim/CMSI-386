@@ -233,18 +233,24 @@ import java.util.*;
 interface AExp {
     Double eval();
     
-    // List<AInstr> compile(); 	               // Problem 3
+    List<AInstr> compile(); 	               // Problem 3
 }
 
 class Num implements AExp {
     protected Double val;
 
+    public Num (Double v) {
+        this.val = v;
+    }
+
     public Double eval() {
         return this.val;
     }
 
-    public Num (Double v) {
-        this.val = v;
+    public List<AInstr> compile() {
+        List<AInstr> result = new LinkedList<AInstr>();
+        result.add(new Push(this.val));
+        return result;
     }
 }
 
@@ -252,14 +258,22 @@ class BinOp implements AExp {
     protected AExp left, right;
     protected Op op;
 
-    public Double eval() {
-        return op.calculate(this.left.eval(), this.right.eval());
-    }
-
     public BinOp (AExp gauche, Op oper, AExp droit) {
         this.left = gauche;
         this.op = oper;
         this.right = droit;
+    }
+
+    public Double eval() {
+        return op.calculate(this.left.eval(), this.right.eval());
+    }
+
+    public List<AInstr> compile() {
+        List<AInstr> result = new LinkedList<AInstr>();
+        result.addAll(this.left.compile());
+        result.addAll(this.right.compile());
+        result.add(new Calculate(op));
+        return result;
     }
 }
 
@@ -275,15 +289,42 @@ enum Op {
 
 // a type for arithmetic instructions
 interface AInstr {
-    // void eval(Stack<Double> stack);    // Problem 2
+    void eval(Stack<Double> stack);    // Problem 2
 }
 
 class Push implements AInstr {
     protected Double val;
+
+    public Push (Double v) {
+        this.val = v;
+    }
+
+    public void eval (Stack<Double> empiler) {
+        empiler.push(this.val);
+    }
+
+    public String toString() {
+        return "Push " + this.val.toString();
+    }
 }
 
 class Calculate implements AInstr {
     protected Op op;
+
+    public Calculate (Op oper) {
+        this.op = oper;
+    }
+
+    public void eval (Stack<Double> empiler) {
+        Double n1; Double n2;
+        n2 = empiler.pop();
+        n1 = empiler.pop();
+        empiler.push(this.op.calculate(n1, n2));
+    }
+
+    public String toString() {
+        return "Calculate " + this.op.toString();
+    }
 }
 
 class Instrs {
@@ -291,31 +332,53 @@ class Instrs {
 
     public Instrs(List<AInstr> instrs) { this.instrs = instrs; }
 
-    // public Double eval() {}  // Problem 2
+    public Double eval() {
+        Stack<Double> empiler = new Stack<Double>();
+        for (AInstr inst : instrs) {
+            inst.eval(empiler);
+        }
+        return empiler.pop();
+    }  // Problem 2
 }
 
 
 class CalcTest {
     public static void main(String[] args) {
 	    // a test for Problem 1
-	// AExp aexp =
-	//     new BinOp(new BinOp(new Num(1.0), Op.PLUS, new Num(2.0)),
-	// 	      Op.TIMES,
-	// 	      new Num(4.0));
-	// System.out.println("aexp evaluates to " + aexp.eval()); // aexp evaluates to 12.0
+	AExp aexp0 =
+	    new BinOp(new BinOp(new Num(12.0), Op.MINUS, new Num(2.0)),
+		      Op.DIVIDE,
+		      new Num(2.0));
+	System.out.println("aexp0 evaluates to " + aexp0.eval()); // aexp0 evaluates to 5.0
+
+    AExp aexp1 =
+        new BinOp(new BinOp(new Num(1.0), Op.PLUS, new Num(2.0)),
+              Op.TIMES,
+              new Num(4.0));
+    System.out.println("aexp1 evaluates to " + aexp1.eval()); // aexp1 evaluates to 12.0
 
 	// a test for Problem 2
-	// List<AInstr> is = new LinkedList<AInstr>();
-	// is.add(new Push(1.0));
-	// is.add(new Push(2.0));
-	// is.add(new Calculate(Op.PLUS));
-	// is.add(new Push(4.0));
-	// is.add(new Calculate(Op.TIMES));
-	// Instrs instrs = new Instrs(is);
-	// System.out.println("instrs evaluates to " + instrs.eval());  // instrs evaluates to 12.0
+	List<AInstr> is = new LinkedList<AInstr>();
+	is.add(new Push(1.0));
+	is.add(new Push(2.0));
+	is.add(new Calculate(Op.PLUS));
+	is.add(new Push(4.0));
+	is.add(new Calculate(Op.TIMES));
+	Instrs instrs0 = new Instrs(is);
+	System.out.println("instrs0 evaluates to " + instrs0.eval());  // instrs evaluates to 12.0
+
+    List<AInstr> second = new LinkedList<AInstr>();
+    second.add(new Push(8.0));
+    second.add(new Push(4.0));
+    second.add(new Calculate(Op.MINUS));
+    second.add(new Push(2.0));
+    second.add(new Calculate(Op.DIVIDE));
+    Instrs instrs1 = new Instrs(second);
+    System.out.println("instrs1 evaluates to " + instrs1.eval()); // evaluates to 2.0
 
 	// a test for Problem 3
-	// System.out.println("aexp converts to " + aexp.compile());
+    System.out.println("aexp converts to " + aexp0.compile());
+	System.out.println("aexp converts to " + aexp1.compile());
 
     }
 }
