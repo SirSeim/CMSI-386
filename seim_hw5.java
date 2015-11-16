@@ -361,6 +361,15 @@ class CalcTest {
     	Instrs instrs = new Instrs(is);
     	System.out.println("instrs evaluates to " + instrs.eval());  // instrs evaluates to 12.0
 
+        List<AInstr> sec = new LinkedList<AInstr>();
+        sec.add(new Push(2.0));
+        sec.add(new Push(1.0));
+        sec.add(new Calculate(Op.MINUS));
+        sec.add(new Push(4.0));
+        sec.add(new Calculate(Op.TIMES));
+        Instrs instrsec = new Instrs(sec);
+        System.out.println("instrsec evaluates to " + instrsec.eval());  // instrsec evaluates to 4.0
+
         // a test for Problem 3
         System.out.println("aexp converts to " + aexp.compile());
 
