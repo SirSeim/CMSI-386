@@ -2,7 +2,7 @@
 
    UID: 965155965
 
-   Others With Whom I Discussed Things: Rodrigo Seim
+   Others With Whom I Discussed Things: Rodrigo Seim, Lauren Konchan
 
    Other Resources I Consulted:
    
