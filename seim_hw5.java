@@ -234,7 +234,7 @@ import java.util.*;
 // a type for arithmetic expressions
 interface AExp {
     Double eval(); 	                       // Problem 1
-    // List<AInstr> compile(); 	               // Problem 3
+    List<AInstr> compile(); 	               // Problem 3
 }
 
 class Num implements AExp {
@@ -245,7 +245,13 @@ class Num implements AExp {
     }
 
     public Double eval () {
-        return val;
+        return this.val;
+    }
+
+    public List<AInstr> compile () {
+        List<AInstr> result = new LinkedList<AInstr>();
+        result.add(new Push(this.val));
+        return result;
     }
 }
 
@@ -260,7 +266,15 @@ class BinOp implements AExp {
     }
 
     public Double eval () {
-        return op.calculate(left.eval(), right.eval());
+        return this.op.calculate(this.left.eval(), this.right.eval());
+    }
+
+    public List<AInstr> compile () {
+        List<AInstr> result = new LinkedList<AInstr>();
+        result.addAll(left.compile());
+        result.addAll(right.compile());
+        result.add(new Calculate(this.op));
+        return result;
     }
 }
 
@@ -289,6 +303,10 @@ class Push implements AInstr {
     public void eval (Stack<Double> stack) {
         stack.push(this.val);
     }
+
+    public String toString () {
+        return "Push " + this.val;
+    }
 }
 
 class Calculate implements AInstr {
@@ -302,6 +320,10 @@ class Calculate implements AInstr {
         Double val2 = stack.pop();
         Double val1 = stack.pop();
         stack.push(op.calculate(val1, val2));
+    }
+
+    public String toString () {
+        return "Calculate " + this.op;
     }
 }
 
@@ -339,8 +361,8 @@ class CalcTest {
     	Instrs instrs = new Instrs(is);
     	System.out.println("instrs evaluates to " + instrs.eval());  // instrs evaluates to 12.0
 
-	// a test for Problem 3
-	// System.out.println("aexp converts to " + aexp.compile());
+        // a test for Problem 3
+        System.out.println("aexp converts to " + aexp.compile());
 
     }
 }
