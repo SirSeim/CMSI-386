@@ -1,8 +1,10 @@
-/* Name:
+/* Name: Edward Seim
 
-   UID:
+   UID: 930713935
 
    Others With Whom I Discussed Things:
+   Joshua Kuroda
+   Lauren Konchan
 
    Other Resources I Consulted:
    
@@ -231,17 +233,35 @@ import java.util.*;
      
 // a type for arithmetic expressions
 interface AExp {
-    // Double eval(); 	                       // Problem 1
+    Double eval(); 	                       // Problem 1
     // List<AInstr> compile(); 	               // Problem 3
 }
 
 class Num implements AExp {
     protected Double val;
+
+    public Num (Double val) {
+      this.val = val;
+    }
+
+    public Double eval () {
+        return val;
+    }
 }
 
 class BinOp implements AExp {
     protected AExp left, right;
     protected Op op;
+
+    public BinOp (AExp left, Op op,  AExp right) {
+        this.left = left;
+        this.op = op;
+        this.right = right;
+    }
+
+    public Double eval () {
+        return op.calculate(left.eval(), right.eval());
+    }
 }
 
 // a representation of four arithmetic operators
@@ -256,15 +276,33 @@ enum Op {
 
 // a type for arithmetic instructions
 interface AInstr {
-    // void eval(Stack<Double> stack);    // Problem 2
+    void eval(Stack<Double> stack);    // Problem 2
 }
 
 class Push implements AInstr {
     protected Double val;
+
+    public Push (Double val) {
+        this.val = val;
+    }
+
+    public void eval (Stack<Double> stack) {
+        stack.push(this.val);
+    }
 }
 
 class Calculate implements AInstr {
     protected Op op;
+
+    public Calculate (Op op) {
+        this.op = op;
+    }
+
+    public void eval (Stack<Double> stack) {
+        Double val2 = stack.pop();
+        Double val1 = stack.pop();
+        stack.push(op.calculate(val1, val2));
+    }
 }
 
 class Instrs {
@@ -272,28 +310,34 @@ class Instrs {
 
     public Instrs(List<AInstr> instrs) { this.instrs = instrs; }
 
-    // public Double eval() {}  // Problem 2
+    public Double eval() {
+        Stack<Double> stack = new Stack<Double>();
+        for (AInstr instr : instrs) {
+            instr.eval(stack);
+        }
+        return stack.pop();
+    }  // Problem 2
 }
 
 
 class CalcTest {
     public static void main(String[] args) {
 	    // a test for Problem 1
-	// AExp aexp =
-	//     new BinOp(new BinOp(new Num(1.0), Op.PLUS, new Num(2.0)),
-	// 	      Op.TIMES,
-	// 	      new Num(4.0));
-	// System.out.println("aexp evaluates to " + aexp.eval()); // aexp evaluates to 12.0
+    	AExp aexp =
+    	    new BinOp(new BinOp(new Num(1.0), Op.PLUS, new Num(2.0)),
+    		      Op.TIMES,
+    		      new Num(4.0));
+    	System.out.println("aexp evaluates to " + aexp.eval()); // aexp evaluates to 12.0
 
-	// a test for Problem 2
-	// List<AInstr> is = new LinkedList<AInstr>();
-	// is.add(new Push(1.0));
-	// is.add(new Push(2.0));
-	// is.add(new Calculate(Op.PLUS));
-	// is.add(new Push(4.0));
-	// is.add(new Calculate(Op.TIMES));
-	// Instrs instrs = new Instrs(is);
-	// System.out.println("instrs evaluates to " + instrs.eval());  // instrs evaluates to 12.0
+        // a test for Problem 2
+    	List<AInstr> is = new LinkedList<AInstr>();
+    	is.add(new Push(1.0));
+    	is.add(new Push(2.0));
+    	is.add(new Calculate(Op.PLUS));
+    	is.add(new Push(4.0));
+    	is.add(new Calculate(Op.TIMES));
+    	Instrs instrs = new Instrs(is);
+    	System.out.println("instrs evaluates to " + instrs.eval());  // instrs evaluates to 12.0
 
 	// a test for Problem 3
 	// System.out.println("aexp converts to " + aexp.compile());
