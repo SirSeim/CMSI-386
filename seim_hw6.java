@@ -184,27 +184,42 @@ import java.util.concurrent.*;
 class NoMoreRoomException extends Exception {}
 
 class DivideFilter {
-    // TODO: add properties!
+    private int[] divisors;
+    private int usedCapacity;
     
     DivideFilter(int capacity) {
-	throw new RuntimeException("Implement me");
+        this.divisors = new int[capacity];
+        this.usedCapacity = 0;
     }
 
     // returns true if one of its stored divisors evenly divides i.
     boolean anyEvenlyDivides(Integer i) {
-	throw new RuntimeException("Implement me");
+        for (int y = 0; y < divisors.length; y++) {
+            if (this.divisors[y] != 0 && i % this.divisors[y] == 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // add a divisor
     // If the DivideFilter is full, then addDivisor should throw
     // a NoMoreRoomException.
     void addDivisor(Integer i) throws NoMoreRoomException {
-	throw new RuntimeException("Implement me");
+        if (this.usedCapacity != this.divisors.length) {
+            this.divisors[usedCapacity] = i;
+            this.usedCapacity++;
+        } else{
+            throw new NoMoreRoomException();
+        }
     }
 
     // returns true if maximum capacity has been reached.
     boolean full() {
-	throw new RuntimeException("Implement me");
+        if (this.divisors.length == this.usedCapacity) {
+            return true;
+        }
+        return false;
     }
 }
 
@@ -413,7 +428,7 @@ class TestSieve {
 	assert(Helpers.take(output) == -1);
 
 	// Wait for thread t to exit.
-	Helpers.join(t)
+	Helpers.join(t);
 
 	assert(input.isEmpty());
 	assert(output.isEmpty());
