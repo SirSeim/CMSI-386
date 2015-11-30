@@ -1,0 +1,120 @@
+* Fix for #ast
+
+in repl.ml, line 46:
+
+Change:
+ | LetRec(s,e1,e2) -> "LetRec(" ^ s ^ ", " ^ go e1 ^ ", " ^ go e2 ^ ")"
+
+To:
+ | LetRec(s,e1,e2) -> "LetRec(\"" ^ s ^ "\", " ^ go e1 ^ ", " ^ go e2 ^ ")"
+
+* New tests for let rec. Add to evalExprTests in interp.ml:
+
+  ; ("BadLetRec1", LetRec("foo", Var "foo", IntConst 5),
+     Exception (DynamicTypeError "var foo not found"))
+
+  ; ("BadLetRec2", LetRec("foo", IntConst 5, Var "foo"),
+     Exception (DynamicTypeError "tieTheKnot expected a function"))
+
+* loadInterp.ml just loads the interp.ml and its dependencies:
+
+#use "env.ml";;
+#use "ast.ml";;
+#use "parser.ml";;
+#use "lexer.ml";;
+#use "interp.ml";;
+
+* Tips:
+  - work on one function at a time.
+  - let the tests drive your implementation!
+  - comment out everything after the unit tests for the
+    function you are working on
+  - make small changes, test often.
+  - run `ocaml loadInterp.ml` to run the unit tests
+  - use #ast to add new unit tests.
+
+* Use parens to disambiguate '|' in the presence of nested match/with
+  or try/with:
+
+
+match e with
+| P1 -> E1
+...
+| Pi -> (match Something with
+         ...
+     | ...
+         )
+| Pn -> ...
+
+
+match e with
+| P1 -> E1
+...
+| Pi -> (try Something with
+         ...
+     | ...
+         )
+| Pn -> ...
+
+
+-----
+Types
+
+
+What is it??
+  - a set of *values* {-1, 0, 1,2,3...} Int
+    comes with some operations
+    legal results of computation
+
+  - int list: pattern match, cons elements onto the front, =
+  - int * bool: pattern match
+  - int -> bool: call
+
+Statically vs Dynamically typed.
+  Static: java, C, C++, Haskell, OCaml, maybe basic?
+  Dynamically: JS, python, bash, julia, coffeescript, lisp, smalltalk, 
+
+  - Static:
+    - types categorize all expressions.
+    - every expression has a type before running.
+    - if it doesn't, you can't run it.
+  - Guarantee: eval preserves the type (expression and value have the same type).
+    - may not terminate
+    - raise an exception
+    
+  - Eliminates types errors.
+    - 1 + true
+  - Kind of documentation.
+    Must be true. Checked by the type checker.
+  - Enforce user-defined *abstractions*.
+      - give interface to users of your code, keep implementation hidden
+        (so you can change it later if needed).
+      - e.g. classes in C++/Java.
+      
+  - Efficiency
+    - no runtime typechecking
+    - special efficient representations of some types.
+
+  - How does type checking work?
+    - bottom up traversal of AST
+    - based on rules:
+      if E1 has type int, and E2 has type int, then E1 + E2 has type int.
+
+      if E1 : bool, E2 : T, E3 : T then
+        (if E1 then E2 else E3) : T
+
+ - Disadvantages of static typechecking?
+   - hard to debug error messages
+   - less polymorphic.
+   - less "agile" 
+   - unnatural workarounds
+   - code duplication.
+   - less expressive
+
+    [1;false]
+
+    type intOrString = Int of int | String of string
+
+     - effectively turns things into being dynamically typed!
+     - forces the programmer to implement the dynamic type checking.
+

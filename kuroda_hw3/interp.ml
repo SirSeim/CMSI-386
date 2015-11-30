@@ -1,4 +1,6 @@
-(* Name: Joshua Kuroda
+
+(*
+Name: Joshua Kuroda
 
    UID: 965155965
 
@@ -139,7 +141,8 @@ let testCases : (mopat * moexpr) list =
    (IntPat 1, Var "case 1");
    (IntPat 2, Var "case 2");
    (ConsPat (VarPat "head", VarPat "tail"), Var "case 3");
-   (BoolPat true, Var "case 4")
+   (BoolPat true, Var "case 4");
+   (NilPat, Var "case 5")
   ]
 
 (* matchCasesTest: defines a test for the matchCases function.
@@ -158,11 +161,13 @@ let matchCasesTests = [
     ("IntVal«1", IntVal 1, Value ([], Var "case 1"))
   ; ("IntVal«2", IntVal 2, Value ([], Var "case 2"))
 
-  ; ("ConsVal", ConsVal(IntVal 1, ConsVal(IntVal 2, NilVal)), 
+  ; ("ConsVal«1", ConsVal(IntVal 1, ConsVal(IntVal 2, NilVal)), 
      Value ([("tail", ConsVal(IntVal 2, NilVal)); ("head", IntVal 1)], Var "case 3"))
 
   ; ("BoolVal«true",  BoolVal true,  Value ([], Var "case 4"))
   ; ("BoolVal«false", BoolVal false, Exception MatchFailure)
+
+  ; ("NilVal", NilVal, Value([], Var "case 5"))
   ]
 ;;
 
@@ -184,29 +189,115 @@ let tieTheKnot nm v =
 *)
 let rec evalExpr (e:moexpr) (env:moenv) : movalue =
   match e with
-    (* an integer constant evaluates to itself *)
-    IntConst(i) -> IntVal(i)
-  | BoolConst(i) -> BoolVal(i)
-  | BinOp(IntConst(i), Plus, IntConst(j)) -> IntVal(i + j)
-  | BinOp(IntConst(i), Minus, IntConst(j)) -> IntVal(i - j)
-  | BinOp(IntConst(i), Times, IntConst(j)) -> IntVal(i * j)
-  | BinOp(IntConst(i), Eq, IntConst(j)) -> BoolVal(i = j)
-  | BinOp(IntConst(i), Gt, IntConst(j)) -> BoolVal(i > j)
-  | BinOp(i, Cons, j) -> ConsVal(evalExpr i env, evalExpr j env)
 
-  | BinOp(IntConst(i), Plus, _) -> raise (DynamicTypeError "Binary operations only works with integers")
-  | BinOp(_, Plus, IntConst(j)) -> raise (DynamicTypeError "Binary operations only works with integers")
-  | BinOp(IntConst(i), Minus, _) -> raise (DynamicTypeError "Binary operations only works with integers")
-  | BinOp(_, Minus, IntConst(j)) -> raise (DynamicTypeError "Binary operations only works with integers")
-  | BinOp(IntConst(i), Times, _) -> raise (DynamicTypeError "Binary operations only works with integers")
-  | BinOp(_, Times, IntConst(j)) -> raise (DynamicTypeError "Binary operations only works with integers")
-  | BinOp(IntConst(i), Eq, _) -> raise (DynamicTypeError "Binary operations only works with integers")
-  | BinOp(_, Eq, IntConst(j)) -> raise (DynamicTypeError "Binary operations only works with integers")
-  | BinOp(IntConst(i), Gt, _) -> raise (DynamicTypeError "Binary operations only works with integers")
-  | BinOp(_, Gt, IntConst(j)) -> raise (DynamicTypeError "Binary operations only works with integers")
+    IntConst (i) -> IntVal(i)
+  | BoolConst (i) -> BoolVal(i)
+  | Nil -> NilVal
+  | Var (i) -> (try Env.lookup i env with Env.NotBound -> raise (DynamicTypeError "Lookup error"))
 
-  | Let(VarPat(i), e, Var(j)) -> (evalExpr e env)
-  | _ -> raise (MatchFailure)
+  | BinOp(i, Plus, j) -> (
+      match (evalExpr i env) with
+        | IntVal(x) -> (
+          match (evalExpr j env) with
+            | IntVal(y) -> IntVal(x + y)
+            | _ -> raise (DynamicTypeError "Binary operations only work with integers")
+          )
+        | _ -> raise (DynamicTypeError "Binary operations only work with integers")
+      )
+  | BinOp(i, Minus, j) -> (
+      match (evalExpr i env) with
+        | IntVal(x) -> (
+          match (evalExpr j env) with
+            | IntVal(y) -> IntVal(x - y)
+            | _ -> raise (DynamicTypeError "Binary operations only work with integers")
+          )
+        | _ -> raise (DynamicTypeError "Binary operations only work with integers")
+      )
+  | BinOp(i, Times, j) -> (
+      match (evalExpr i env) with
+        | IntVal(x) -> (
+          match (evalExpr j env) with
+            | IntVal(y) -> IntVal(x * y)
+            | _ -> raise (DynamicTypeError "Binary operations only work with integers")
+          )
+        | _ -> raise (DynamicTypeError "Binary operations only work with integers")
+      )
+  | BinOp(i, Eq, j) -> (
+      match (evalExpr i env) with
+        | IntVal(x) -> (
+          match (evalExpr j env) with
+            | IntVal(y) -> BoolVal(x = y)
+            | _ -> raise (DynamicTypeError "Binary operations only work with integers")
+          )
+        | _ -> raise (DynamicTypeError "Binary operations only work with integers")
+      )
+  | BinOp(i, Gt, j) -> (
+      match (evalExpr i env) with
+        | IntVal(x) -> (
+          match (evalExpr j env) with
+            | IntVal(y) -> BoolVal(x > y)
+            | _ -> raise (DynamicTypeError "Binary operations only work with integers")
+          )
+        | _ -> raise (DynamicTypeError "Binary operations only work with integers")
+      )
+
+  | BinOp (i, Cons, j) -> ConsVal(evalExpr i env, evalExpr j env)
+
+  (* | BinOp (_, _, _) -> raise (DynamicTypeError "Binary operations only work with integers") *)
+
+ (* 
+  | Negate (IntConst(i)) -> IntVal(-i)
+  | Negate (BoolConst(i)) -> BoolVal(not i)
+  | Negate (Nil) -> NilVal
+  *)
+
+  | Negate(input) -> (
+      match (evalExpr input env) with
+        | IntVal(input_) -> IntVal(-input_)
+        | BoolVal(input_) -> BoolVal(not input_)
+        | NilVal -> NilVal
+        | _ -> raise MatchFailure
+      )
+
+ (* 
+  | Negate (BinOp(IntConst(i), Plus, IntConst(j))) -> IntVal(i - j)
+  | Negate (BinOp(IntConst(i), Minus, IntConst(j))) -> IntVal(i + j)
+  | Negate (BinOp(IntConst(i), Times, IntConst(j))) -> IntVal(i / j)
+  | Negate (BinOp(IntConst(i), Eq, IntConst(j))) -> BoolVal(i != j)
+  | Negate (BinOp(IntConst(i), Gt, IntConst(j))) -> BoolVal(i <= j)
+  *) 
+ 
+  | If (a, b, c) -> if (evalExpr a env = BoolVal(true)) then evalExpr b env else evalExpr c env
+
+  | Fun (i, e) -> FunVal(None, i, e, env)
+
+  | FunCall (x, y) -> (
+      match (evalExpr x env) with
+          FunVal(name, pat, exp, lex) -> 
+            let lex2 = Env.combine_envs (patMatch pat (evalExpr y lex)) env in evalExpr exp lex2
+        | _ -> raise (DynamicTypeError "The expression given is not a FunVal")
+      )
+
+  | Match (e, liste) -> 
+      let (i, j) = matchCases (evalExpr e env) liste in evalExpr j env
+      (* match evalExpr e env with
+        | p when p = pat -> evalExpr exp env
+        | _ -> evalExpr (Match(e, tl)) env
+      )
+      (
+        match liste with
+          | [] -> raise (MatchFailure)
+          | (x,y)::tl -> 
+      ) *)
+
+  | Let (pat, i, j) -> 
+      evalExpr j (Env.combine_envs (patMatch pat (evalExpr i env)) env)
+
+  (* | LetRec (s, t, u) -> tieTheKnot s (evalExpr (FunCall (t, u)) env) *)
+  | LetRec (s, t, u) -> tieTheKnot s (evalExpr t env)
+  (* | LetRec (s, t, u) -> tieTheKnot s (evalExpr (FunCall(t, u)) patMatch VarPat(s) u) *)
+
+  (* | _ -> raise (MatchFailure) *)
 
 (* evalExprTest defines a test case for the evalExpr function.
    inputs: 
@@ -222,17 +313,67 @@ let evalExprTest (nm,expr,expected) =
       ADD YOUR OWN!
  *)
 let evalExprTests = [
-    ("IntConst",    IntConst 5,                              Value (IntVal 5))
-  ; ("BoolConst",   BoolConst true,                          Value (BoolVal true))
-  ; ("Plus",        BinOp(IntConst 1, Plus, IntConst 1),     Value (IntVal 2))
-  ; ("BadPlus",     BinOp(BoolConst true, Plus, IntConst 1), Exception (DynamicTypeError "Binary operations only works with integers"))
-  ; ("Minus",       BinOp(IntConst 1, Minus, IntConst 1),    Value (IntVal 0))
-  ; ("BadMinus",     BinOp(BoolConst true, Minus, IntConst 1),Exception (DynamicTypeError "Binary operations only works with integers"))
-  ; ("Cons",        BinOp(IntConst 1, Cons, IntConst 2),     Value (ConsVal(IntVal 1, IntVal 2)))
-  ; ("Let",         Let(VarPat "x", IntConst 1, Var "x"),    Value (IntVal 1))
+    ("IntConst",    IntConst 5,                                  Value (IntVal 5))
+  ; ("BoolConst",   BoolConst true,                              Value (BoolVal true))
+  ; ("Nil",         Nil,                                         Value (NilVal))
+
+  ; ("Plus",        BinOp(IntConst 1, Plus, IntConst 1),         Value (IntVal 2))
+  ; ("BadPlus",     BinOp(BoolConst true, Plus, IntConst 1),     Exception (DynamicTypeError "Binary operations only work with integers"))
+  ; ("Minus",       BinOp(IntConst 1, Minus, IntConst 1),        Value (IntVal 0))
+  ; ("BadMinus",    BinOp(BoolConst true, Minus, IntConst 1),    Exception (DynamicTypeError "Binary operations only work with integers"))
+  ; ("Times",       BinOp(IntConst 2, Times, IntConst 3),        Value (IntVal 6))
+  ; ("BadTimes",    BinOp(BoolConst true, Times, IntConst 1),    Exception (DynamicTypeError "Binary operations only work with integers"))
+  ; ("Eq",          BinOp(IntConst 1, Eq, IntConst 1),           Value (BoolVal true))
+  ; ("BadEq",       BinOp(BoolConst true, Eq, IntConst 1),       Exception (DynamicTypeError "Binary operations only work with integers"))
+  ; ("Gt",          BinOp(IntConst 3, Gt, IntConst 1),           Value (BoolVal true))
+  ; ("BadGt",       BinOp(BoolConst true, Gt, IntConst 1),       Exception (DynamicTypeError "Binary operations only work with integers"))
+
+  ; ("DeepPlus",    BinOp(FunCall(Fun(VarPat "x", BinOp(Var "x", Plus, IntConst 2)), IntConst 1), Plus, 
+      FunCall(Fun(VarPat "x", BinOp(Var "x", Plus, IntConst 2)), IntConst 2)),        
+                                                                 Value (IntVal 7))
+
+  ; ("DeepMinus",   BinOp(FunCall(Fun(VarPat "x", BinOp(Var "x", Minus, IntConst 2)), IntConst 3), Minus, 
+      FunCall(Fun(VarPat "x", BinOp(IntConst 2, Minus, Var "x")), IntConst 1)),       
+                                                                 Value (IntVal 0))
+
+  ; ("DeepTimes",   BinOp(FunCall(Fun(VarPat "x", BinOp(Var "x", Times, IntConst 2)), IntConst 3), Times, 
+      FunCall(Fun(VarPat "x", BinOp(Var "x", Times, IntConst 2)), IntConst 4)),       
+                                                                 Value (IntVal 48))
+
+  ; ("DeepEq",      BinOp(FunCall(Fun(VarPat "x", BinOp(Var "x", Plus, IntConst 1)), IntConst 1), Eq, 
+      FunCall(Fun(VarPat "x", BinOp(IntConst 2, Minus, Var "x")), IntConst 2)),          
+                                                                 Value (BoolVal false))
+
+  ; ("DeepGt",      BinOp(FunCall(Fun(VarPat "x", BinOp(Var "x", Times, IntConst 0)), IntConst 2), Gt, 
+      FunCall(Fun(VarPat "x", BinOp(IntConst 3, Plus, Var "x")), IntConst 2)),          
+                                                                 Value (BoolVal false))
+
+  ; ("Cons",        BinOp(IntConst 1, Cons, IntConst 2),         Value (ConsVal(IntVal 1, IntVal 2)))
+
+  ; ("NegateInt",   Negate(IntConst 2),                          Value (IntVal (-2)))
+  ; ("NegateBool",  Negate(BoolConst true),                      Value (BoolVal false))
+  ; ("NegateNil",   Negate(Nil),                                 Value (NilVal))
+
+  ; ("NegatePlus",  Negate(BinOp(IntConst 1, Plus, IntConst 1)), Value (IntVal (-2)))
+  ; ("NegateMinus", Negate(BinOp(IntConst 2, Minus, IntConst 4)),Value (IntVal 2))
+  ; ("NegateTimes", Negate(BinOp(IntConst 4, Times, IntConst 2)),Value (IntVal (-8)))
+  ; ("NegateEq",    Negate(BinOp(IntConst 1, Eq, IntConst 1)),   Value (BoolVal false))
+  ; ("NegateGt",    Negate(BinOp(IntConst 2, Gt, IntConst 1)),   Value (BoolVal false))
+
+  ; ("IfTrue",          If(BoolConst true, BinOp(IntConst 1, Plus, IntConst 1), 
+      BinOp(IntConst 1, Minus, IntConst 1)),                     Value (IntVal 2))
+  ; ("IfFalse",         If(BoolConst false, BinOp(IntConst 1, Plus, IntConst 1), 
+      BinOp(IntConst 1, Minus, IntConst 1)),                     Value (IntVal 0))
+
+  ; ("LetInt",      Let(VarPat "x", IntConst 1, Var "x"),        Value (IntVal 1))
+  ; ("LetBool",     Let(VarPat "x", BoolConst true, Var "x"),    Value (BoolVal true))
+
   ; ("Fun",         FunCall(
 			Fun(VarPat "x", Var "x"),
-			IntConst 5),                         Value (IntVal 5))
+			IntConst 5),                                               Value (IntVal 5))
+  ; ("FunOp",         FunCall(
+      Fun(VarPat "x", BinOp(Var "x", Plus, IntConst 2)),
+      IntConst 5),                                               Value (IntVal 7))
   ]
 ;;
 
