@@ -321,7 +321,20 @@ class Generator implements Runnable {
     public void run() {
 	// Generate numbers up to <max>, and puts them onto the BlockingQueue
 	// <output>. Then put -1 to signal end of input and return.
-	throw new RuntimeException("Implement Generator.run()");
+        int start = 2;
+        int endMark = -1;
+        for (int i = start; i < this.max; i++){
+            try {
+                output.put(i);
+            } catch (InterruptedException e) {
+                // Why would this even happen?!?!
+            }
+        }
+        try {
+            output.put(endMark);
+        } catch (InterruptedException e) {
+            // This is bullshit!
+        }
     }
 }
 
@@ -351,14 +364,55 @@ class TestGenerator {
 class Printer implements Runnable {
     BlockingQueue<Integer> input;
 
+    public Printer (BlockingQueue<Integer> input) {
+        this.input = input;
+    }
+
     public void run() {
 	// Print every number from input to System.out until we get -1.
 	// then return.
-	throw new RuntimeException("Implement Printer.run()");
+        while (!this.input.isEmpty()) {
+            try {
+                Integer i = this.input.take();
+                if (i == -1) {
+                    return;
+                } else {
+                    System.out.println(i);
+                }
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
+        return;
     }
 }
 
-// TODO: Write a TestPrinter class to test your Printer!
+// test your Printer by running:
+// $ java -ea TestPrinter
+class TestPrinter {
+    public static void main(String[] args) {
+    BlockingQueue<Integer> queue = new ArrayBlockingQueue<Integer>(5);
+    Printer printer = new Printer(queue);
+
+    try {
+        queue.put(5);
+        queue.put(7);
+        queue.put(-1);
+    } catch (Exception e) {
+        // Bull
+    }
+
+    // start generator
+    Thread t = new Thread(printer);
+    t.start();
+
+    // wait for generator thread to finish.
+    Helpers.join(t);
+
+    assert(Helpers.take(queue) == -1);
+    assert(queue.isEmpty());
+    }
+}
 
 /* Part 3: Implement the Sieve.
  */
