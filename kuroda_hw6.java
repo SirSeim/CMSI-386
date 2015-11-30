@@ -170,30 +170,59 @@ import java.util.concurrent.*;
    some maximum capacity. Once full, no more numbers can be added.
  */
 
-class NoMoreRoomException extends Exception {}
+class NoMoreRoomException extends Exception {
+    public NoMoreRoomException(String message) {
+        super(message);
+    }
+}
 
 class DivideFilter {
     // TODO: add properties!
+    int capacite;
+    int[] nombresPremiers;
+    boolean spaceExists;
+    int pointer = 0;
     
     DivideFilter(int capacity) {
-	throw new RuntimeException("Implement me");
+	   this.capacite = capacity;
+       this.nombresPremiers = new int[this.capacite];
     }
 
     // returns true if one of its stored divisors evenly divides i.
     boolean anyEvenlyDivides(Integer i) {
-	throw new RuntimeException("Implement me");
+        for (int j = 0; j < this.pointer; j++) {
+            if (i % this.nombresPremiers[j] == 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // add a divisor
     // If the DivideFilter is full, then addDivisor should throw
     // a NoMoreRoomException.
     void addDivisor(Integer i) throws NoMoreRoomException {
-	throw new RuntimeException("Implement me");
+        if (full()) {
+            throw new NoMoreRoomException("il n'y a pas d'espace");
+        }
+        this.nombresPremiers[pointer] = i;
+        this.pointer++;
     }
 
     // returns true if maximum capacity has been reached.
     boolean full() {
-	throw new RuntimeException("Implement me");
+        this.spaceExists = false;
+        for (int j = 0; j < this.capacite; j++) {
+            if (this.nombresPremiers[j] == 0) {
+                this.spaceExists = true;
+                j = this.capacite;
+            }
+        }
+        // alternatively..
+        if (pointer > this.capacite) {
+            this.spaceExists = false;
+        }
+        return !this.spaceExists;
     }
 }
 
@@ -201,31 +230,31 @@ class DivideFilter {
 // $ java -ea TestDivideFilter
 class TestDivideFilter {
     public static void main(String[] args) {
-	TestDivideFilter tester = new TestDivideFilter();
-	tester.test1();
-	// tester.test2();  // So you can add more tests...
-	// tester.test3();
+    	TestDivideFilter tester = new TestDivideFilter();
+    	tester.test1();
+    	// tester.test2();  // So you can add more tests...
+    	// tester.test3();
     }
 
     void test1() {
-	DivideFilter filter = new DivideFilter(1);
-	assert(filter.anyEvenlyDivides(125) == false);
+    	DivideFilter filter = new DivideFilter(1);
+        assert(filter.anyEvenlyDivides(125) == false);
 
-	try {
-	    filter.addDivisor(5);
-	    assert(filter.anyEvenlyDivides(125) == true);
-	} catch(NoMoreRoomException e) {
-	    assert(false); // should not reach this point!
-	}
+    	try {
+    	    filter.addDivisor(5);
+    	    assert(filter.anyEvenlyDivides(125) == true);
+    	} catch(NoMoreRoomException e) {
+    	    assert(false); // should not reach this point!
+    	}
 
-	assert(filter.full());
+    	assert(filter.full());
 
-	try {
-	    filter.addDivisor(7);
-	    assert(false); // should not reach this point!
-	} catch (NoMoreRoomException e) {
-	    // cool. was full, so addDivisor threw NoMoreRoomException.
-	}
+    	try {
+    	    filter.addDivisor(7);
+    	    assert(false); // should not reach this point!
+    	} catch (NoMoreRoomException e) {
+    	    // cool. was full, so addDivisor threw NoMoreRoomException.
+    	}
     }
 }
 
@@ -239,14 +268,14 @@ class Helpers {
     // complication for us.
     
     public static <E> void put(BlockingQueue<E> queue, E elem) {
-	while(true) {
-	    try {
-		queue.put(elem);
-		return;
-	    } catch(InterruptedException e) {
-		// Ignoring this. Just retry until it works.
-	    }
-	}
+    	while(true) {
+    	    try {
+    		queue.put(elem);
+    		return;
+    	    } catch(InterruptedException e) {
+    		// Ignoring this. Just retry until it works.
+    	    }
+    	}
     }
     
     public static <E> E take(BlockingQueue<E> queue) {
@@ -288,14 +317,21 @@ class Generator implements Runnable {
     BlockingQueue<Integer> output;
 
     Generator(Integer max, BlockingQueue<Integer> output) {
-	this.max = max;
-	this.output = output;
+        this.max = max;
+        this.output = output;
     }
 
     public void run() {
-	// Generate numbers up to <max>, and puts them onto the BlockingQueue
-	// <output>. Then put -1 to signal end of input and return.
-	throw new RuntimeException("Implement Generator.run()");
+        // Generate numbers up to <max>, and puts them onto the BlockingQueue
+        // <output>. Then put -1 to signal end of input and return.
+        try {
+            for (Integer i = 2; i < this.max; i++) {
+                this.output.put(i);
+            }
+            this.output.put(-1);
+        } catch (InterruptedException e) {
+            System.out.println("interrupted");
+        }
     }
 }
 
@@ -303,22 +339,22 @@ class Generator implements Runnable {
 // $ java -ea TestGenerator
 class TestGenerator {
     public static void main(String[] args) {
-	BlockingQueue<Integer> queue = new ArrayBlockingQueue<Integer>(5);
-	Generator gen = new Generator(100, queue);
+        BlockingQueue<Integer> queue = new ArrayBlockingQueue<Integer>(5);
+        Generator gen = new Generator(100, queue);
 
-	// start generator
-	Thread t = new Thread(gen);
-	t.start();
-	
-	for(int i = 2; i < 100; i++) {
-	    assert(Helpers.take(queue) == i);
-	}
+        // start generator
+        Thread t = new Thread(gen);
+        t.start();
 
-	// wait for generator thread to finish.
-	Helpers.join(t);
+        for(int i = 2; i < 100; i++) {
+            assert(Helpers.take(queue) == i);
+        }
 
-	assert(Helpers.take(queue) == -1);
-	assert(queue.isEmpty());
+        // wait for generator thread to finish.
+        Helpers.join(t);
+
+        assert(Helpers.take(queue) == -1);
+        assert(queue.isEmpty());
     }
 }
 
@@ -326,13 +362,26 @@ class Printer implements Runnable {
     BlockingQueue<Integer> input;
 
     public void run() {
-	// Print every number from input to System.out until we get -1.
-	// then return.
-	throw new RuntimeException("Implement Printer.run()");
+        // Print every number from input to System.out until we get -1.
+        // then return.
+        // boolean unfinished = false;
+        try {
+            while (this.input.peek() != -1) {
+                System.out.println(this.input.take());
+            }
+        } catch (InterruptedException e) {
+            System.out.println("interrupted");
+        }
     }
 }
 
-// TODO: Write a TestPrinter class to test your Printer!
+// test your Printer by running:
+// $ java -ea TestPrinter
+class TestPrinter {
+    public static void main(String[] args) {
+        // idk
+    }
+}
 
 /* Part 3: Implement the Sieve.
  */
@@ -345,7 +394,11 @@ class Sieve implements Runnable {
 	  BlockingQueue<Integer> output,
 	  Integer filterSize,
 	  Integer queueSize) {
-	// TODO
+        this.input = input;
+        this.output = output;
+        this.filterSize = filterSize;
+        this.queueSize = queueSize;
+        this.filter = new DivideFilter(this.filterSize);
     }
 
     public void run() {
@@ -364,6 +417,12 @@ class Sieve implements Runnable {
 	// Next, if adding the number to filter made it full, we need
 	// to create a new Sieve and add splice it in after this one.
 	// Think carefully about how to do this!
+        try {
+            Generator dynamo = new Generator(this.queueSize, this.input);
+
+        } catch (InterruptedException e) {
+            System.out.println("interrupted");
+        }
     }
 }
 
@@ -402,7 +461,7 @@ class TestSieve {
 	assert(Helpers.take(output) == -1);
 
 	// Wait for thread t to exit.
-	Helpers.join(t)
+	Helpers.join(t);
 
 	assert(input.isEmpty());
 	assert(output.isEmpty());
