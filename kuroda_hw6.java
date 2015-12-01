@@ -1,3 +1,12 @@
+/* Name: Joshua Kuroda
+
+   UID: 965155965
+
+   Others With Whom I Discussed Things: Rodrigo Seim, Lauren Konchan
+
+   Other Resources I Consulted: javadocs
+   
+*/
 /* Homework 6 - The Pipeline of Eratosthenes
  *
  * In this assignment you will use multithreading to build a fast
@@ -361,6 +370,10 @@ class TestGenerator {
 class Printer implements Runnable {
     BlockingQueue<Integer> input;
 
+    Printer(BlockingQueue<Integer> input) {
+        this.input = input;
+    }
+
     public void run() {
         // Print every number from input to System.out until we get -1.
         // then return.
@@ -379,7 +392,26 @@ class Printer implements Runnable {
 // $ java -ea TestPrinter
 class TestPrinter {
     public static void main(String[] args) {
-        // idk
+        BlockingQueue<Integer> queue = new ArrayBlockingQueue<Integer>(5);
+        try {
+            queue.put(13);
+        } catch (Exception e) {}
+        try {
+            queue.put(17);
+        } catch (Exception e) {}
+        try {
+            queue.put(-1);
+        } catch(Exception e) {}
+        Printer print = new Printer(queue);
+
+        // start printer
+        Thread t = new Thread(print);
+        t.start();
+        
+        // wait for printer thread to finish.
+        Helpers.join(t);
+        assert(Helpers.take(queue) == -1);
+        assert(queue.isEmpty());
     }
 }
 
@@ -417,12 +449,54 @@ class Sieve implements Runnable {
 	// Next, if adding the number to filter made it full, we need
 	// to create a new Sieve and add splice it in after this one.
 	// Think carefully about how to do this!
-        try {
-            Generator dynamo = new Generator(this.queueSize, this.input);
-
-        } catch (InterruptedException e) {
-            System.out.println("interrupted");
+        // try {
+        //     Generator dynamo = new Generator(this.queueSize, this.input);
+        //     dynamo.run();
+        // } catch (InterruptedException e) {
+        //     System.out.println("interrupted");
+        // }
+        
+        int droplet = Helpers.take(this.input);
+        while(droplet > 0) {
+            if (!this.filter.anyEvenlyDivides(droplet)) {
+                Helpers.put(this.output, droplet);
+                if(!this.filter.full()) {
+                    try { this.filter.addDivisor(droplet); } catch (Exception e) {}
+                    if(this.filter.full()) {
+                        Sieve tamis = new Sieve(this.output, new ArrayBlockingQueue<Integer>(this.queueSize), this.filterSize, this.queueSize);
+                    }
+                }
+            }
+            droplet = Helpers.take(this.input);
         }
+        Helpers.put(output, droplet);
+        return;
+
+        // int droplet = this.input.poll();
+        // while (droplet > 0) {
+        //     if (!this.filter.anyEvenlyDivides(droplet)) {
+        //         try {
+        //             filter.addDivisor(droplet);
+        //         } catch (Exception e) {
+        //             System.out.println("interrupted");
+        //         }
+        //     }
+        //     if (!filter.full()) {
+        //         try {
+        //             filter.addDivisor(droplet);
+        //         } catch (Exception e) {
+        //             System.out.println("interrupted");
+        //         }
+        //     } else {
+        //         Sieve tamis = new Sieve(this.output, new ArrayBlockingQueue<Integer>(this.output.size()), this.filterSize, this.queueSize);
+        //     }
+        //     droplet = this.input.poll();
+        // }
+        // try {
+        //     this.output.put(droplet);
+        // } catch (InterruptedException e) {
+        //     System.out.println("interrupted");
+        // }
     }
 }
 
@@ -489,12 +563,13 @@ class HW6 {
  * For this part, make sure to run on a multi-core machine. 
  *
  * 1) How many CPUs cores does your machine have?
+    Two cores
  * 
  * 2) What is the run time for each of:
- *      java HW6 10000 1 1
- *      java HW6 10000 1 10
- *      java HW6 10000 10 1
- *      java HW6 10000 10 10
+ *      java HW6 10000 1 1 -- 
+ *      java HW6 10000 1 10 -- 
+ *      java HW6 10000 10 1 -- 
+ *      java HW6 10000 10 10 -- 
  *    What conclusions can you make from these times?
  * 
  * 3) Use a system monitor (e.g. Task Manager on Windows, Activity 
@@ -505,7 +580,7 @@ class HW6 {
  *    What conclusions can you make from these observations?
  *
  * 4) Try a few different values of <filterSize> and <queueSize>
- *    and see which produce the lowest run time for: 
+ *    and see which produces the lowest run time for: 
  *      java HW6 10000000 <filterSize> <queueSize>
  *    List the run times for each pair of values you tried.
  */
