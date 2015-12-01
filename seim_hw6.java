@@ -409,7 +409,6 @@ class TestPrinter {
     // wait for generator thread to finish.
     Helpers.join(t);
 
-    assert(Helpers.take(queue) == -1);
     assert(queue.isEmpty());
     }
 }
