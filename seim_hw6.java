@@ -5,6 +5,9 @@
     Others With Whom I Discussed Things:
     Lauren Konchan
     Joshua Kuroda
+    Trixie Roque
+    Brosef
+    Joel
 
     Other Resources I Consulted:
 */
@@ -431,14 +434,14 @@ class Sieve implements Runnable {
 	// Next, if adding the number to filter made it full, we need
 	// to create a new Sieve and add splice it in after this one.
 	// Think carefully about how to do this!
-        System.out.println("started " + this.toString());
+        // System.out.println("started " + this.toString());
         boolean createdSieve = false;
         while (true) {
-            System.out.println("< " + this.toString());
+            // System.out.println("< " + this.toString());
             Integer i = Helpers.take(this.input);
             if (i == -1) {
                 // Stop
-                System.out.println("Stop");
+                // System.out.println("Stop");
                 Helpers.put(this.output, -1);
                 return;
             } else {
@@ -452,7 +455,7 @@ class Sieve implements Runnable {
                             Helpers.put(newOutput, i);
                             Sieve nextSieve = new Sieve(newOutput, this.output, this.filterSize, this.queueSize);
                             this.output = newOutput;
-                            System.out.println("new Sieve");
+                            // System.out.println("new Sieve");
                             Thread t = new Thread(nextSieve);
                             t.start();
                             createdSieve = true;
@@ -462,7 +465,7 @@ class Sieve implements Runnable {
                     }
                 }
             }
-            System.out.println("> " + this.toString());
+            // System.out.println("> " + this.toString());
         }
     }
 }
@@ -475,11 +478,11 @@ class TestSieve {
 
 	// test DivideFilter size large enough that a single sieve
 	// will work.
-    System.out.println("test 20");
+    // System.out.println("test 20");
 	tester.test(20);
 
 	// this time we'll need multiple sieves
-    System.out.println("test 5");
+    // System.out.println("test 5");
 	tester.test(5);
     }
 
@@ -495,7 +498,7 @@ class TestSieve {
 	}
 	Helpers.put(input, -1);
 
-    System.out.println("start remove");
+    // System.out.println("start remove");
 	assert(Helpers.take(output) == 2);
 	assert(Helpers.take(output) == 3);
 	assert(Helpers.take(output) == 5);
@@ -503,7 +506,7 @@ class TestSieve {
 	assert(Helpers.take(output) == 11);
 	assert(Helpers.take(output) == 13);
 	assert(Helpers.take(output) == -1);
-    System.out.println("end remove");
+    // System.out.println("end remove");
 
 	// Wait for thread t to exit.
 	Helpers.join(t);
@@ -525,6 +528,25 @@ class HW6 {
     BlockingQueue<Integer> input = new ArrayBlockingQueue<Integer>(queueSize);
     BlockingQueue<Integer> output = new ArrayBlockingQueue<Integer>(queueSize);
     Generator gen = new Generator(max, input);
+    Sieve sieve = new Sieve(input, output, filterSize, queueSize);
+    Printer printer = new Printer(output);
+
+    Thread g = new Thread(gen);
+    Thread s = new Thread(sieve);
+    Thread p = new Thread(printer);
+    g.start();
+    s.start();
+    p.start();
+
+    try {
+        Helpers.join(g);
+        Helpers.join(s);
+        Helpers.join(p);
+    } catch (Exception e) {
+
+    }
+
+
 
 	long tEnd = System.currentTimeMillis();
 
@@ -538,25 +560,38 @@ class HW6 {
  * For this part, make sure to run on a multi-core machine. 
  *
  * 1) How many CPUs cores does your machine have?
+ * 4
  * 
  * 2) What is the run time for each of:
  *      java HW6 10000 1 1
+ * Run time: 0 minutes, 7.51 seconds
  *      java HW6 10000 1 10
+ * Run time: 0 minutes, 0.70 seconds
  *      java HW6 10000 10 1
+ * Run time: 0 minutes, 0.30 seconds
  *      java HW6 10000 10 10
+ * Run time: 0 minutes, 0.16 seconds
  *    What conclusions can you make from these times?
+ * While both increasing the filter size and the queue size increase overall performance,
+ * increasing filter size has a greater effect on speeding up processing.
  * 
  * 3) Use a system monitor (e.g. Task Manager on Windows, Activity 
  *    Monitor on Mac, top on linux or Mac) to observe your CPU
  *    utilization for each of:
  *      java HW6 100000 10 10
+ * 400%
  *      java HW6 100000 10000 10
+ * 100%
  *    What conclusions can you make from these observations?
+ * Having a Filter size equal or greater than the biggest number you're looking for
+ * means that only one Sieve will be created and therefore no parallelism will occur.
  *
  * 4) Try a few different values of <filterSize> and <queueSize>
  *    and see which produce the lowest run time for: 
  *      java HW6 10000000 <filterSize> <queueSize>
  *    List the run times for each pair of values you tried.
+ * java HW6 10000000 10000 10000
+ * Run time: 6 minutes, 41.14 seconds
  */
 
 /* Part 5: Extra Credit
