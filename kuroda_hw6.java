@@ -592,6 +592,7 @@ class HW6 {
         Thread u = new Thread(eratosthenes);
         Thread v = new Thread(imprimante);
         t.start(); u.start(); v.start();
+        Helpers.join(t); Helpers.join(u); Helpers.join(v);
 
     	long tEnd = System.currentTimeMillis();
 
@@ -608,23 +609,31 @@ class HW6 {
     Two cores
  * 
  * 2) What is the run time for each of:
- *      java HW6 10000 1 1 -- 
- *      java HW6 10000 1 10 -- 
- *      java HW6 10000 10 1 -- 
- *      java HW6 10000 10 10 -- 
+ *      java HW6 10000 1 1 -- 5.05sec
+ *      java HW6 10000 1 10 -- 2.39sec
+ *      java HW6 10000 10 1 -- 0.75sec
+ *      java HW6 10000 10 10 -- 0.46sec
  *    What conclusions can you make from these times?
+        It looks like the most optimal commands are those that have higher filter sizes and higher
+        queue sizes, with filter size being more significant.
  * 
  * 3) Use a system monitor (e.g. Task Manager on Windows, Activity 
  *    Monitor on Mac, top on linux or Mac) to observe your CPU
  *    utilization for each of:
- *      java HW6 100000 10 10
- *      java HW6 100000 10000 10
+ *      java HW6 100000 10 10 -- ~365% CPU
+ *      java HW6 100000 10000 10 -- process is too quick to observe CPU utilization
  *    What conclusions can you make from these observations?
+        Although I could not see how my CPU was handling the second command, it is obvious that the
+        second command was more efficient CPU-wise. The first command nearly freezes my computer because
+        it eats up so much CPU. The second command was both quick and efficient, hardly making an
+        impact on my CPU %.
  *
  * 4) Try a few different values of <filterSize> and <queueSize>
  *    and see which produces the lowest run time for: 
  *      java HW6 10000000 <filterSize> <queueSize>
  *    List the run times for each pair of values you tried.
+        java HW6 10000000 10000 10000 -- 4min21.23sec
+        java HW6 10000000 100000 100000 -- 4min02.01sec
  */
 
 /* Part 5: Extra Credit
