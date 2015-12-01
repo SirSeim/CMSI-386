@@ -378,12 +378,13 @@ class Printer implements Runnable {
         // Print every number from input to System.out until we get -1.
         // then return.
         // boolean unfinished = false;
-        try {
-            while (this.input.peek() != -1) {
-                System.out.println(this.input.take());
+        while (true) {
+            Integer i = Helpers.take(input);
+            if (i == -1) {
+                return;
+            } else {
+                System.out.println(i);
             }
-        } catch (InterruptedException e) {
-            System.out.println("interrupted");
         }
     }
 }
@@ -527,7 +528,6 @@ class Sieve implements Runnable {
                     }
                 }
             }
-            System.out.println("> " + this.toString());
         }
     }
 }
@@ -588,6 +588,10 @@ class HW6 {
         Generator dynamo = new Generator(max, input);
         Sieve eratosthenes = new Sieve(input, output, filterSize, queueSize);
         Printer imprimante = new Printer(output);
+        Thread t = new Thread(dynamo);
+        Thread u = new Thread(eratosthenes);
+        Thread v = new Thread(imprimante);
+        t.start(); u.start(); v.start();
 
     	long tEnd = System.currentTimeMillis();
 
