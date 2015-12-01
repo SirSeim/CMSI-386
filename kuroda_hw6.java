@@ -456,21 +456,21 @@ class Sieve implements Runnable {
         //     System.out.println("interrupted");
         // }
         
-        int droplet = Helpers.take(this.input);
-        while(droplet > 0) {
-            if (!this.filter.anyEvenlyDivides(droplet)) {
-                Helpers.put(this.output, droplet);
-                if(!this.filter.full()) {
-                    try { this.filter.addDivisor(droplet); } catch (Exception e) {}
-                    if(this.filter.full()) {
-                        Sieve tamis = new Sieve(this.output, new ArrayBlockingQueue<Integer>(this.queueSize), this.filterSize, this.queueSize);
-                    }
-                }
-            }
-            droplet = Helpers.take(this.input);
-        }
-        Helpers.put(output, droplet);
-        return;
+        // int droplet = Helpers.take(this.input);
+        // while(droplet > 0) {
+        //     if (!this.filter.anyEvenlyDivides(droplet)) {
+        //         Helpers.put(this.output, droplet);
+        //         if(!this.filter.full()) {
+        //             try { this.filter.addDivisor(droplet); } catch (Exception e) {}
+        //             if(this.filter.full()) {
+        //                 Sieve tamis = new Sieve(this.output, new ArrayBlockingQueue<Integer>(this.queueSize), this.filterSize, this.queueSize);
+        //             }
+        //         }
+        //     }
+        //     droplet = Helpers.take(this.input);
+        // }
+        // Helpers.put(output, droplet);
+        // return;
 
         // int droplet = this.input.poll();
         // while (droplet > 0) {
@@ -497,6 +497,38 @@ class Sieve implements Runnable {
         // } catch (InterruptedException e) {
         //     System.out.println("interrupted");
         // }
+        boolean primePassed = false;
+        while (true) {
+            Integer i = Helpers.take(this.input);
+            if (i < 0) {
+                Helpers.put(this.output, -1);
+                return;
+            } else {
+                if (!this.filter.anyEvenlyDivides(i)) {
+                    if (!this.filter.full()) {
+                        try {
+                            this.filter.addDivisor(i);
+                        } catch (NoMoreRoomException e) {
+                            System.out.println("out of space");
+                        }
+                        Helpers.put(this.output, i);
+                    } else {
+                        if (!primePassed) {
+                            BlockingQueue<Integer> newQueue = new ArrayBlockingQueue<Integer> (this.queueSize);
+                            Helpers.put(newQueue, i);
+                            Sieve newSieve = new Sieve (newQueue, this.output, this.filterSize, this.queueSize);
+                            this.output = newQueue;
+                            Thread t = new Thread (newSieve);
+                            t.start();
+                            primePassed = true;
+                        } else {
+                            Helpers.put(this.output, i);
+                        }
+                    }
+                }
+            }
+            System.out.println("> " + this.toString());
+        }
     }
 }
 
