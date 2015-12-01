@@ -324,17 +324,9 @@ class Generator implements Runnable {
         int start = 2;
         int endMark = -1;
         for (int i = start; i < this.max; i++){
-            try {
-                output.put(i);
-            } catch (InterruptedException e) {
-                // Why would this even happen?!?!
-            }
+            Helpers.put(output, i);
         }
-        try {
-            output.put(endMark);
-        } catch (InterruptedException e) {
-            // This is bullshit!
-        }
+        Helpers.put(output, endMark);
     }
 }
 
@@ -371,19 +363,14 @@ class Printer implements Runnable {
     public void run() {
 	// Print every number from input to System.out until we get -1.
 	// then return.
-        while (!this.input.isEmpty()) {
-            try {
-                Integer i = this.input.take();
-                if (i == -1) {
-                    return;
-                } else {
-                    System.out.println(i);
-                }
-            } catch (InterruptedException e) {
+        while (true) {
+            Integer i = Helpers.take(input);
+            if (i == -1) {
                 return;
+            } else {
+                System.out.println(i);
             }
         }
-        return;
     }
 }
 
@@ -444,7 +431,10 @@ class Sieve implements Runnable {
 	// Next, if adding the number to filter made it full, we need
 	// to create a new Sieve and add splice it in after this one.
 	// Think carefully about how to do this!
+        System.out.println("started " + this.toString());
+        boolean createdSieve = false;
         while (true) {
+            System.out.println("< " + this.toString());
             Integer i = Helpers.take(this.input);
             if (i == -1) {
                 // Stop
@@ -453,20 +443,26 @@ class Sieve implements Runnable {
                 return;
             } else {
                 if (!filter.anyEvenlyDivides(i)) {
-                    Helpers.put(output, i);
                     if (!this.filter.full()) {
-                        try {this.filter.addDivisor(i);} catch (NoMoreRoomException e) {} //Bull catch
-                        if (this.filter.full()) {
+                        try {this.filter.addDivisor(i);} catch (NoMoreRoomException e) {System.out.println("bull");} //Bull catch
+                        Helpers.put(this.output, i);
+                    } else {
+                        if (!createdSieve) {
                             BlockingQueue<Integer> newOutput = new ArrayBlockingQueue<Integer>(queueSize);
-                            Sieve nextSieve = new Sieve(this.output, newOutput, this.filterSize, this.queueSize);
+                            Helpers.put(newOutput, i);
+                            Sieve nextSieve = new Sieve(newOutput, this.output, this.filterSize, this.queueSize);
+                            this.output = newOutput;
                             System.out.println("new Sieve");
                             Thread t = new Thread(nextSieve);
                             t.start();
+                            createdSieve = true;
+                        } else {
+                            Helpers.put(this.output, i);
                         }
                     }
                 }
             }
-            System.out.println("cycled " + this.toString());
+            System.out.println("> " + this.toString());
         }
     }
 }
@@ -499,6 +495,7 @@ class TestSieve {
 	}
 	Helpers.put(input, -1);
 
+    System.out.println("start remove");
 	assert(Helpers.take(output) == 2);
 	assert(Helpers.take(output) == 3);
 	assert(Helpers.take(output) == 5);
@@ -506,6 +503,7 @@ class TestSieve {
 	assert(Helpers.take(output) == 11);
 	assert(Helpers.take(output) == 13);
 	assert(Helpers.take(output) == -1);
+    System.out.println("end remove");
 
 	// Wait for thread t to exit.
 	Helpers.join(t);
@@ -524,6 +522,10 @@ class HW6 {
 	long tStart = System.currentTimeMillis();
 	// TODO: Construct and start a pipeline containing the
 	// generator, a single sieve, and a printer.
+    BlockingQueue<Integer> input = new ArrayBlockingQueue<Integer>(queueSize);
+    BlockingQueue<Integer> output = new ArrayBlockingQueue<Integer>(queueSize);
+    Generator gen = new Generator(max, input);
+
 	long tEnd = System.currentTimeMillis();
 
 	long tDiff = tEnd - tStart;
