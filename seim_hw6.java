@@ -420,11 +420,12 @@ class Sieve implements Runnable {
     BlockingQueue<Integer> input, output;
     Integer filterSize, queueSize;
 
-    Sieve(BlockingQueue<Integer> input,
-	  BlockingQueue<Integer> output,
-	  Integer filterSize,
-	  Integer queueSize) {
-	// TODO
+    public Sieve(BlockingQueue<Integer> input, BlockingQueue<Integer> output, Integer filterSize, Integer queueSize) {
+	   this.input = input;
+       this.output = output;
+       this.filterSize = filterSize;
+       this.queueSize = queueSize;
+       this.filter = new DivideFilter(filterSize);
     }
 
     public void run() {
@@ -443,6 +444,30 @@ class Sieve implements Runnable {
 	// Next, if adding the number to filter made it full, we need
 	// to create a new Sieve and add splice it in after this one.
 	// Think carefully about how to do this!
+        while (true) {
+            Integer i = Helpers.take(this.input);
+            if (i == -1) {
+                // Stop
+                System.out.println("Stop");
+                Helpers.put(this.output, -1);
+                return;
+            } else {
+                if (!filter.anyEvenlyDivides(i)) {
+                    Helpers.put(output, i);
+                    if (!this.filter.full()) {
+                        try {this.filter.addDivisor(i);} catch (NoMoreRoomException e) {} //Bull catch
+                        if (this.filter.full()) {
+                            BlockingQueue<Integer> newOutput = new ArrayBlockingQueue<Integer>(queueSize);
+                            Sieve nextSieve = new Sieve(this.output, newOutput, this.filterSize, this.queueSize);
+                            System.out.println("new Sieve");
+                            Thread t = new Thread(nextSieve);
+                            t.start();
+                        }
+                    }
+                }
+            }
+            System.out.println("cycled " + this.toString());
+        }
     }
 }
 
@@ -454,9 +479,11 @@ class TestSieve {
 
 	// test DivideFilter size large enough that a single sieve
 	// will work.
+    System.out.println("test 20");
 	tester.test(20);
 
 	// this time we'll need multiple sieves
+    System.out.println("test 5");
 	tester.test(5);
     }
 
