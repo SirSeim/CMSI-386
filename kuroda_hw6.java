@@ -576,17 +576,23 @@ class TestSieve {
 
 class HW6 {
     public static void main(String[] args) {
-	Integer max = Integer.parseInt(args[0]);
-	Integer filterSize = Integer.parseInt(args[1]);
-	Integer queueSize = Integer.parseInt(args[2]);
+    	Integer max = Integer.parseInt(args[0]);
+    	Integer filterSize = Integer.parseInt(args[1]);
+    	Integer queueSize = Integer.parseInt(args[2]);
 
-	long tStart = System.currentTimeMillis();
-	// TODO: Construct and start a pipeline containing the
-	// generator, a single sieve, and a printer.
-	long tEnd = System.currentTimeMillis();
+    	long tStart = System.currentTimeMillis();
+    	// TODO: Construct and start a pipeline containing the
+    	// generator, a single sieve, and a printer.
+        BlockingQueue<Integer> input = new ArrayBlockingQueue<Integer>(queueSize);
+        BlockingQueue<Integer> output = new ArrayBlockingQueue<Integer>(queueSize);
+        Generator dynamo = new Generator(max, input);
+        Sieve eratosthenes = new Sieve(input, output, filterSize, queueSize);
+        Printer imprimante = new Printer(output);
 
-	long tDiff = tEnd - tStart;
-	System.out.format("Run time: %d minutes, %.2f seconds%n", tDiff/60000, (tDiff % 60000) / 1000.0);
+    	long tEnd = System.currentTimeMillis();
+
+    	long tDiff = tEnd - tStart;
+    	System.out.format("Run time: %d minutes, %.2f seconds%n", tDiff/60000, (tDiff % 60000) / 1000.0);
     }
 }
 
