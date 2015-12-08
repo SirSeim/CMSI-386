@@ -1,8 +1,10 @@
-/* Name:
+/* Name: Edward Seim
 
-   UID:
+   UID: 930713935
 
    Others With Whom I Discussed Things:
+   Lauren Konchan
+   Joshua Kuroda
 
    Other Resources I Consulted:
    
