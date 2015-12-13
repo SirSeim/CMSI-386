@@ -128,7 +128,15 @@ permutation of L1. Use only insert or insertV2.
 
 */
 
+insert(Fa, [Ha|Ta], [Hb|Tb]) :- Ha =< Fa, insert(Fa, Ta, Tb).
+insert(Fa, Fb, [Fa|Fb]).
 
+insertV2(Fa, [Ha|Ta], [Hb|Tb]) :- sorted(La), sorted(Lb),
+  select(Fa, Lb, La), Ha =< Fa, insert(Fa, Ta, Tb).
+insertV2(Fa, Fb, [Fa|Fb]).
+
+insort(Li,Li).
+insort([Ha|Ta], Lb) :- insert(Ha, Ta, Lb), insort(Ta, Lb).
 
 /* Problem 5
 
