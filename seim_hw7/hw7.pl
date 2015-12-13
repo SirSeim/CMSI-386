@@ -45,6 +45,8 @@ X = [a, a, b, b, c, c].
 X = [a, a, c, c].
  */
 
+duplist([],[]).
+duplist([Ha|Ta], [Hb, Mb|Tb]) :- Ha = Hb, Ha = Mb, duplist(Ta, Tb).
 
 /* Problem 2 
 
