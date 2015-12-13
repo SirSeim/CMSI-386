@@ -606,13 +606,13 @@ class HW6 {
  * For this part, make sure to run on a multi-core machine. 
  *
  * 1) How many CPUs cores does your machine have?
-    Two cores
+    Four cores with hyperthreading (two physical cores)
  * 
  * 2) What is the run time for each of:
- *      java HW6 10000 1 1 -- 5.05sec
- *      java HW6 10000 1 10 -- 2.39sec
- *      java HW6 10000 10 1 -- 0.75sec
- *      java HW6 10000 10 10 -- 0.46sec
+ *      java HW6 10000 1 1 -- 4.35sec
+ *      java HW6 10000 1 10 -- 1.17sec
+ *      java HW6 10000 10 1 -- 0.36sec
+ *      java HW6 10000 10 10 -- 0.18sec
  *    What conclusions can you make from these times?
         It looks like the most optimal commands are those that have higher filter sizes and higher
         queue sizes, with filter size being more significant.
@@ -620,7 +620,7 @@ class HW6 {
  * 3) Use a system monitor (e.g. Task Manager on Windows, Activity 
  *    Monitor on Mac, top on linux or Mac) to observe your CPU
  *    utilization for each of:
- *      java HW6 100000 10 10 -- ~365% CPU
+ *      java HW6 100000 10 10 -- made computer difficult to use
  *      java HW6 100000 10000 10 -- process is too quick to observe CPU utilization
  *    What conclusions can you make from these observations?
         Although I could not see how my CPU was handling the second command, it is obvious that the
@@ -632,8 +632,10 @@ class HW6 {
  *    and see which produces the lowest run time for: 
  *      java HW6 10000000 <filterSize> <queueSize>
  *    List the run times for each pair of values you tried.
-        java HW6 10000000 10000 10000 -- 4min21.23sec
-        java HW6 10000000 100000 100000 -- 4min02.01sec
+        java HW6 10000000 10000 100 -- 8min2.21sec
+        java HW6 10000000 1000 100 -- 7min34.89sec
+        java HW6 10000000 100000 100 -- 8min46.58sec
+        java HW6 10000000 100000 10000 -- 8min40.96sec
  */
 
 /* Part 5: Extra Credit
