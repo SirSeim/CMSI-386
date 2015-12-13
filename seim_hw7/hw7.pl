@@ -150,6 +150,8 @@ vs
 
 Which is faster? Why?
 
+Insort is faster because it does not re-create lists, permsort generates new possibilities constantly.
+
 */
 
 /* Problem 6 
@@ -216,3 +218,13 @@ from getting stuck down infinite paths (e.g., continually picking up
 and putting down the same block).
 
 */
+
+perform(world([Ha|Ta], Sb, Sc, none), pickup(stack1), world(Ta, Sb, Sc, Ha)).
+perform(world(Sa, [Hb|Tb], Sc, none), pickup(stack2), world(Sa, Tb, Sc, Hb)).
+perform(world(Sa, Sb, [Hc|Tc], none), pickup(stack3), world(Sa, Sb, Tc, Hc)).
+perform(world(Sa, Sb, Sc, Ha), putdown(stack1), world([Ha|Sa], Sb, Sc, none)) :- Ha \= none.
+perform(world(Sa, Sb, Sc, Hb), putdown(stack2), world(Sa, [Hb|Sb], Sc, none)) :- Hb \= none.
+perform(world(Sa, Sb, Sc, Hc), putdown(stack3), world(Sa, Sb, [Hc|Sc], none)) :- Hc \= none.
+
+blocksworld(S, [], G) :- S = G.
+blocksworld(S, [Ha|Ta], G) :- perform(S, Ha, Fa), blocksworld(Fa, Ta, G).
