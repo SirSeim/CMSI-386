@@ -126,6 +126,8 @@ permutation of L1. Use only insert or insertV2.
 
 */
 
+permsort(La, Lb) :- sorted(Lb), perm(La, Lb).
+
 /* Problem 5
 
 Compare the time it takes prolog to find 1 solution for each of:
