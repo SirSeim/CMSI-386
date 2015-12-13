@@ -102,6 +102,12 @@ is true if L2 is a sorted permutation of L1.
 
 */
 
+select(Fa, [Fa|Ba], Ba).
+select(Fa, [H|Ba], [H|Bb]) :- select(Fa, Ba, Bb).
+
+perm([Ha|Ta], Li) :- perm(Ta, Fa), select(Ha, Li, Fa).
+perm([], []).
+
 /* Problem 4
 
 Define a predicate insert(X,L1,L2) that inserts X into the list L1
