@@ -70,6 +70,10 @@ false.
 
 */
 
+sorted([]).
+sorted(Li) :- length(Li, 1).
+sorted([Ha, Ma|Ta]) :- Ha =< Ma, sorted(Ta).
+
 /* Problem 3
 
 Define a predicate perm(L1,L2) that is true if L2 is a permutation of L1.
