@@ -108,6 +108,8 @@ select(Fa, [H|Ba], [H|Bb]) :- select(Fa, Ba, Bb).
 perm([Ha|Ta], Li) :- perm(Ta, Fa), select(Ha, Li, Fa).
 perm([], []).
 
+permsort(La, Lb) :- sorted(Lb), perm(La, Lb).
+
 /* Problem 4
 
 Define a predicate insert(X,L1,L2) that inserts X into the list L1
@@ -126,7 +128,7 @@ permutation of L1. Use only insert or insertV2.
 
 */
 
-permsort(La, Lb) :- sorted(Lb), perm(La, Lb).
+
 
 /* Problem 5
 
