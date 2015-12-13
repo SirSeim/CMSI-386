@@ -434,14 +434,11 @@ class Sieve implements Runnable {
 	// Next, if adding the number to filter made it full, we need
 	// to create a new Sieve and add splice it in after this one.
 	// Think carefully about how to do this!
-        // System.out.println("started " + this.toString());
         boolean createdSieve = false;
         while (true) {
-            // System.out.println("< " + this.toString());
             Integer i = Helpers.take(this.input);
             if (i == -1) {
                 // Stop
-                // System.out.println("Stop");
                 Helpers.put(this.output, -1);
                 return;
             } else {
@@ -455,7 +452,6 @@ class Sieve implements Runnable {
                             Helpers.put(newOutput, i);
                             Sieve nextSieve = new Sieve(newOutput, this.output, this.filterSize, this.queueSize);
                             this.output = newOutput;
-                            // System.out.println("new Sieve");
                             Thread t = new Thread(nextSieve);
                             t.start();
                             createdSieve = true;
@@ -465,7 +461,6 @@ class Sieve implements Runnable {
                     }
                 }
             }
-            // System.out.println("> " + this.toString());
         }
     }
 }
@@ -478,11 +473,9 @@ class TestSieve {
 
 	// test DivideFilter size large enough that a single sieve
 	// will work.
-    // System.out.println("test 20");
 	tester.test(20);
 
 	// this time we'll need multiple sieves
-    // System.out.println("test 5");
 	tester.test(5);
     }
 
@@ -498,7 +491,6 @@ class TestSieve {
 	}
 	Helpers.put(input, -1);
 
-    // System.out.println("start remove");
 	assert(Helpers.take(output) == 2);
 	assert(Helpers.take(output) == 3);
 	assert(Helpers.take(output) == 5);
@@ -506,7 +498,6 @@ class TestSieve {
 	assert(Helpers.take(output) == 11);
 	assert(Helpers.take(output) == 13);
 	assert(Helpers.take(output) == -1);
-    // System.out.println("end remove");
 
 	// Wait for thread t to exit.
 	Helpers.join(t);
@@ -523,8 +514,9 @@ class HW6 {
 	Integer queueSize = Integer.parseInt(args[2]);
 
 	long tStart = System.currentTimeMillis();
-	// TODO: Construct and start a pipeline containing the
-	// generator, a single sieve, and a printer.
+
+
+
     BlockingQueue<Integer> input = new ArrayBlockingQueue<Integer>(queueSize);
     BlockingQueue<Integer> output = new ArrayBlockingQueue<Integer>(queueSize);
     Generator gen = new Generator(max, input);
