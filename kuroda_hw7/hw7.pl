@@ -1,10 +1,10 @@
-/* Name:
+/* Name: Josh Kuroda
 
-   UID:
+   UID: 965155965
 
-   Others With Whom I Discussed Things:
+   Others With Whom I Discussed Things: Rodrigo Seim, Lauren Konchan
 
-   Other Resources I Consulted:
+   Other Resources I Consulted: swi-prolog.org
    
 */
 
@@ -42,7 +42,9 @@ X = [a, a, b, b, c, c].
 ?- duplist(X, [a,a,a,a,c,c,c,c]).
 X = [a, a, c, c].
  */
+duplist([],[]).
 
+duplist([_a|_b],[_c,_mid|_d]) :- _a = _c, _a = _mid, duplist(_b,_d).
 
 /* Problem 2 
 
@@ -65,6 +67,11 @@ true.
 false.
 
 */
+sorted([]).
+
+sorted(_a) :- length(_a, 1).
+
+sorted([_b, _c|_d]) :- _b =< _c, sorted(_d).
 
 /* Problem 3
 
@@ -93,6 +100,11 @@ Use sorted and perm to define a predicate permsort(L1,L2) that
 is true if L2 is a sorted permutation of L1.
 
 */
+select(_a, [_a|_b], _b).
+select(_a, [_c|_b], [_c|_d]) :- select(_a, _b, _d).
+perm([],[]).
+perm([_x|_y], _z) :- perm(_y, _a), select(_x, _z, _a).
+permsort(_w, _z) :- sorted(_z), perm(_w, _z).
 
 /* Problem 4
 
@@ -111,6 +123,17 @@ Define a predicate insort(L1,L2) that is true if L2 is a sorted
 permutation of L1. Use only insert or insertV2.
 
 */
+insert(_a, [_b|_c], [_d|_e]) :- _b =< _a, insert(_a, _c, _e).
+insert(_a, _f, [_a|_f]).
+insertV2(_a, _f, [_a|_f]).
+
+insertV2(_a, [_b|_c], [_d|_e]) :-
+    sorted(_g),
+    sorted(_h),
+    select(_a, _h, _g),
+    _b =< _a, insert(_a, _c, _e).
+
+insort([_j|_k], _h) :- insert(_j, _k, _h), insort(_k, _h).
 
 /* Problem 5
 
@@ -124,6 +147,8 @@ vs
 
 Which is faster? Why?
 
+Insort, because permsort is checking every permutation, which increases
+    the complexity. 
 */
 
 /* Problem 6 
@@ -190,3 +215,18 @@ from getting stuck down infinite paths (e.g., continually picking up
 and putting down the same block).
 
 */
+perform(world([_hand|_b],_st2,_st3,none), pickup(stack1), world(_b,_st2,_st3,_hand)).
+
+perform(world(_st1,_st2,_st3,_hand), putdown(stack1), world([_hand|_st1],_st2,_st3,none)) :- _hand \= none.
+
+perform(world(_st1,[_hand|_b],_st3,none), pickup(stack2), world(_st1,_b,_st3,_hand)).
+
+perform(world(_st1,_st2,_st3,_hand), putdown(stack2), world(_st1,[_hand|_st2],_st3,none)) :- _hand \= none.
+
+perform(world(_st1,_st2,[_hand|_b],none), pickup(stack3), world(_st1,_st2,_b,_hand)).
+
+perform(world(_st1,_st2,_st3,_hand), putdown(stack3), world(_st1,_st2,[_hand|_st3],none)) :- _hand \= none.
+
+blocksworld(_start, [], _goal) :- _start = _goal.
+
+blocksworld(_start, [_hand|_b], _goal) :- perform(_start, _hand, _z), blocksworld(_z, _b, _goal).

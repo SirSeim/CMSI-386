@@ -1,0 +1,223 @@
+1) Consider the following Java code:
+
+   class IntList {
+     // ... fields elided
+     IntList() {
+       // initialization elided
+     }
+
+     void insert(Integer elem) {
+       // insert elem at the front of the list
+     }
+
+     Integer get(Integer pos) {
+       // get the element stored at location pos
+     }
+   }
+
+   // SortedIntList maintains the invariant that
+   // the elements are in sorted order
+   class SortedIntList extends IntList {
+     void insert(Integer i) {
+       // insert i at the appropriate position to
+       // maintain the sortedness invariant
+     }
+   }
+
+   a) Explain how this design can lead to bugs by violating the
+      assumptions of IntList's users.
+
+   b) Explain how this design can lead to bugs by violating the
+      assumptions of SortedIntList's users.
+
+   c) Propose an alternate method of achieving code reuse while
+      simultaneously preventing the problems from 1 and 2.
+
+2) Implement Euclid's algorithm for finding the greatest common
+   divisor of two positive integers in functional, imperative, and
+   logic style.
+
+   The Algorithm:
+     If the two numbers are equal, the gcd is that number.
+     If either number is zero, the gcd is the non-zero number.
+     Otherwise, one number is greater than the other.
+       the gcd of the two numbers is equal to the gcd of the smaller
+       number and the difference between the two numbers.
+
+   a) Implement a recursive function gcd : (int * int) -> int in
+      ocaml.  Use pattern matching whenever possible.
+
+   b) Implement gcd in an imperative style (loops and update instead
+      of recursion) in python or java.
+
+   c) Define a relation gcd(X,Y,D) in prolog that is true if D is the
+      gcd of X and Y.
+
+3) Checked vs Unchecked Exceptions.
+   a) Discuss a benefit of checked exceptions. 
+   b) Discuss a benefit of unchecked exceptions.
+   c) Consider the Java code:
+
+      interface A {
+	void m();
+      }
+
+      class B implements A {
+	void m() throws Exception {
+	  throw new Exception();
+	} 
+      }
+
+      Does Java allow or disallow this program (i.e. will it compile or
+      produce a compile-time error)?  Why is it reasonable for Java to do
+      this?
+
+4) Polymorphism
+   a) What is parametric polymorphism good for? Give an example (in
+      OCaml or Java) to illustrate your point.
+   b) What is subtype polymorphism good for? Illustrate your point
+      with an example in Java.
+   c) What is the combination of parametric and subtype polymorphism
+      good for?  Illustrate your point with an example in Java.
+
+5) In the Java code below, A's method "m" is overloaded. What is the
+   output of running Main?
+
+   class A {
+     void m(Object o) {
+       System.out.println("Called A.m(Object)");
+     }
+
+     void m(Integer i) {
+       System.out.println("Called A.m(Integer)");
+     }
+   }
+
+   class Main {
+     public static void main(String[] args) {
+       A a = new A();
+       a.m(5);
+       a.m("hello");
+       Object o = new Integer(5);
+       a.m(o);
+     }
+   }
+
+6) What does this Java program output?
+
+   class A {
+     void m(Object o) {
+       System.out.println("A.m(Object)");
+     }
+   }
+
+   class B extends A {
+     void m(Integer i) {
+       System.out.println("B.m(Integer)");
+     }
+   }
+
+   class Main {
+     public static void main(String[] args) {
+       A a = new A();
+       B b = new B();
+
+       Object o = new Integer(5);
+
+       a.m(5);
+       a.m("hello");
+       a.m(o);
+
+       b.m(5);
+       b.m("hello");
+       b.m(o);
+     }
+   }
+
+7) Consider the following Java program:
+
+   import java.util.*;
+   
+   abstract class A {
+     void m();
+     void n() {
+       System.out.println("A.n");
+       this.m();
+     }
+   }
+
+   class B extends A {
+     void m() {
+       System.out.println("B.m");
+     }
+     void n() {
+       System.out.println("B.n");
+     }
+   }
+   
+   class C extends A {
+     void m() {
+       System.out.println("C.m");
+     }
+     void n(String msg) {
+       System.out.println("C.n: " + msg);
+     }
+   }
+
+   class Main {
+     public static void main(String[] args) {
+       List<A> as = new LinkedList<A>();
+       as.add(new B());
+       as.add(new C());
+   
+       for(A a : as)
+         a.n();
+     }
+   }
+
+   a) Write the output of running Main.
+   b) Which method calls in the program are downcalls?
+   c) Which method declarations override a previous definition?
+
+8) Consider the following Java code:
+
+   void bookTicket(Event event, CreditCard ccInfo) {
+     try {
+       // make sure a ticket is available, and 
+       // reserve it so no one else can buy it.
+       Ticket t = reserveTicket(event);
+
+       // charge the card.
+       ccInfo.charge(ccInfo, t.cost());
+       return true;
+     } catch(TicketReservationException e) {
+       return false;
+     } catch(CreditCardTransactionException e) {
+       return false;
+     }
+   }
+
+   Is this code Exception safe? Why or why not?
+
+9) Consider this code, which could be C, C++, or Java:
+
+   foo(a,b);
+   bar(5);
+
+   a) What affect does the call have on the value of a assuming that foo
+      is call by value? Call by reference?
+    	Pass By Value
+		Passing a variable by value makes a copy of the variable before passing it onto a function. This means that if you try to 
+			modify the value inside a function, it will only have the modified value inside that function. Once the function returns, 
+			the variable you passed it will have the same value it had before you passed it into the function.
+
+		Pass By Reference
+		There are two instances where a variable is passed by reference:
+			1.  When you modify the value of the passed variable locally and also the value of the variable in the calling function as well.
+			2.  To avoid making a copy of the variable for efficiency reasons.
+
+   b) Can bar be call by value? What about call by reference? Why or why
+      not?
+      	Yes to both. For example, if you are writing a program for a low memory system, you may want to avoid copying larger sized 
+      	types such as structs and arrays when passing them to functions. But with data types like integers, there is no 
+      	point in passing by reference when a pointer to an integer is the same size in memory as an integer itself.
